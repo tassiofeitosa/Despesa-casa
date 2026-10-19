@@ -1,0 +1,481 @@
+<style>
+  .gc { display: grid; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); }
+  .gc-head { display: flex; flex-wrap: wrap; gap: var(--cds-gap-md); align-items: end; justify-content: space-between; }
+  .gc-head h1 { margin: 0; font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); }
+  .gc-head p { margin: var(--cds-gap-xs) 0 0; color: var(--color-fg-muted); max-width: 60ch; }
+  .gc-mes { display: flex; gap: var(--cds-gap-sm); align-items: center; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .gc-mes select { font: inherit; color: var(--color-fg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); }
+  .gc h2 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
+  .gc-section { display: grid; gap: var(--cds-gap-md); }
+  .gc-section > header p { margin: var(--cds-gap-xs) 0 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); max-width: 70ch; }
+  .gc-tiles { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); }
+  .gc-tile, .gc-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
+  .gc-tile .k { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .gc-tile .v { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; margin-top: var(--cds-gap-xs); }
+  .gc-tile .s { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: var(--cds-gap-xs); font-variant-numeric: tabular-nums; }
+  .gc-tile.destaque { border-color: var(--cds-chart-reference); }
+  .gc-grid { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); }
+  .gc-card h3 { margin: 0; font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); }
+  .gc-card .nota { margin: var(--cds-gap-xs) 0 var(--cds-gap-md); color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+  .gc-chart { position: relative; min-height: 220px; }
+  .gc-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; z-index: 2; }
+  .gc-tip .t { color: var(--cds-text-secondary); }
+  .gc-table-wrap { max-height: 26rem; overflow: auto; }
+  .gc table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+  .gc th, .gc td { text-align: left; padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); }
+  .gc th { position: sticky; top: 0; background: var(--color-panel); color: var(--color-fg-muted); font-weight: var(--cds-font-weight-medium); }
+  .gc td.num, .gc th.num { text-align: right; }
+  .gc .pend { color: var(--color-warn); }
+  .gc .chip { display: inline-block; padding: 0 var(--cds-pad-xs); border-radius: var(--cds-radius); border: 1px solid var(--color-border-line); color: var(--color-fg-muted); }
+  .gc .aviso { color: var(--color-warn); }
+  @media (max-width: 34rem) { .gc .opt { display: none; } }
+  [data-dash-source-state=empty] { color: transparent; }
+  [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+  .gc-falha { display: flex; align-items: center; justify-content: center; gap: var(--cds-gap-xs); min-height: inherit; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+  .gc-falha::before { content: ""; width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); }
+</style>
+
+<div class="gc">
+  <div class="gc-head">
+    <div>
+      <h1 id="topo">Gastos Casa</h1>
+      <p class="gc-resumo dash-skeleton" data-source="mensal">—</p>
+    </div>
+    <label class="gc-mes">Mês
+      <select id="mes" aria-label="Mês" data-source="mensal"></select>
+    </label>
+  </div>
+
+  <section class="gc-section" id="mes-atual">
+    <div class="gc-tiles">
+      <div class="gc-tile"><div class="k">Gasto no mês</div><div class="v dash-skeleton" id="t-total">—</div><div class="s" id="t-delta">—</div></div>
+      <div class="gc-tile"><div class="k">Lançamentos com valor</div><div class="v dash-skeleton" id="t-n">—</div><div class="s pend" id="t-pend">—</div></div>
+      <div class="gc-tile"><div class="k">Média por dia</div><div class="v dash-skeleton" id="t-media">—</div><div class="s" id="t-dias">—</div></div>
+      <div class="gc-tile"><div class="k">Projeção para o mês</div><div class="v dash-skeleton" id="t-proj">—</div><div class="s">No ritmo atual até o fim do mês</div></div>
+    </div>
+
+    <div class="gc-grid">
+      <div class="gc-card" id="card-meses">
+        <h3>Total por mês</h3>
+        <p class="nota">Barra cheia é o gasto anotado; o contorno mostra a projeção do mês atual.</p>
+        <div class="gc-chart" id="ch-meses" data-source="mensal projecao"></div>
+      </div>
+      <div class="gc-card" id="card-categorias">
+        <h3>Por categoria</h3>
+        <p class="nota" id="nota-cat">No mês escolhido.</p>
+        <div class="gc-chart" id="ch-cat" data-source="categorias"></div>
+      </div>
+      <div class="gc-card" id="card-dias">
+        <h3>Por dia</h3>
+        <p class="nota">Soma dos gastos de cada dia do mês escolhido.</p>
+        <div class="gc-chart" id="ch-dias" data-source="diario"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-section" id="planejamento">
+    <header>
+      <h2>Planejamento futuro</h2>
+      <p>Quanto separar por mês, com base no ritmo de gastos anotado no grupo e uma margem de segurança de 10%. Gastos fixos que não aparecem no grupo (aluguel, plano de saúde) ainda não entram na conta.</p>
+    </header>
+    <div class="gc-tiles">
+      <div class="gc-tile"><div class="k">Média mensal usada</div><div class="v dash-skeleton" id="p-media" data-source="projecao" data-field="media_mensal">—</div><div class="s" id="p-base">—</div></div>
+      <div class="gc-tile destaque"><div class="k">Separar por mês</div><div class="v dash-skeleton" id="p-prov" data-source="projecao" data-field="provisao_mensal">—</div><div class="s">Média mensal + 10% de margem</div></div>
+    </div>
+    <div class="gc-grid">
+      <div class="gc-card" id="card-horizontes">
+        <h3>Reserva acumulada</h3>
+        <p class="nota">Quanto juntar para cobrir os próximos meses no ritmo atual.</p>
+        <div class="gc-chart" id="ch-horiz" data-source="horizontes"></div>
+      </div>
+      <div class="gc-card" id="card-horiz-tabela">
+        <h3>Por horizonte</h3>
+        <p class="nota">Sem margem e com 10% de margem.</p>
+        <table id="tb-horiz" data-source="horizontes" data-row-key="meses">
+          <thead><tr><th data-field="meses">Meses</th><th class="num" data-field="base">Sem margem</th><th class="num" data-field="com_margem">Com margem</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <p class="nota aviso" id="p-aviso" hidden></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="gc-section" id="lancamentos">
+    <header>
+      <h2>Lançamentos</h2>
+      <p>Tudo que foi lido do grupo no mês escolhido. Itens <span class="pend">sem valor</span> não somam no total: mandem o valor no grupo para completar.</p>
+    </header>
+    <div class="gc-card">
+      <div class="gc-table-wrap">
+        <table id="tb-lanc" data-source="despesas" data-row-key="id">
+          <thead><tr>
+            <th data-field="data">Dia</th>
+            <th data-field="descricao">Descrição</th>
+            <th data-field="categoria">Categoria</th>
+            <th class="num" data-field="valor">Valor</th>
+            <th class="opt" data-field="pagamento">Pagamento</th>
+            <th class="opt" data-field="autor">Anotado por</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  dash.calc('mensal', {
+    inputs: ['despesas'],
+    title: 'Total por mês',
+    description: 'Soma dos valores por mês; itens sem valor contam só como pendentes.',
+    fn: (despesas) => {
+      const meses = new Map();
+      for (const d of despesas) {
+        const mes = String(d.data).slice(0, 7);
+        const r = meses.get(mes) || { mes, total: 0, lancamentos: 0, pendentes: 0 };
+        if (d.valor === null || d.valor === '') r.pendentes += 1;
+        else { r.total += Number(d.valor); r.lancamentos += 1; }
+        meses.set(mes, r);
+      }
+      return [...meses.values()]
+        .sort((a, b) => (a.mes < b.mes ? -1 : 1))
+        .map((r) => ({ ...r, total: Math.round(r.total * 100) / 100 }));
+    },
+  });
+
+  dash.calc('variacao', {
+    inputs: ['mensal'],
+    title: 'Variação vs. mês anterior',
+    description: 'Diferença do total de cada mês para o mês anterior.',
+    fn: (mensal) => mensal.map((r, i) => ({
+      mes: r.mes,
+      anterior: i > 0 ? mensal[i - 1].total : null,
+      delta: i > 0 ? Math.round((r.total - mensal[i - 1].total) * 100) / 100 : null,
+    })),
+  });
+
+  dash.calc('categorias', {
+    inputs: ['despesas'],
+    title: 'Total por categoria e mês',
+    description: 'Soma dos valores de cada categoria em cada mês.',
+    fn: (despesas) => {
+      const soma = new Map();
+      for (const d of despesas) {
+        if (d.valor === null || d.valor === '') continue;
+        const chave = String(d.data).slice(0, 7) + '|' + d.categoria;
+        soma.set(chave, (soma.get(chave) || 0) + Number(d.valor));
+      }
+      return [...soma].map(([k, total]) => {
+        const [mes, categoria] = k.split('|');
+        return { mes, categoria, total: Math.round(total * 100) / 100 };
+      });
+    },
+  });
+
+  dash.calc('diario', {
+    inputs: ['despesas'],
+    title: 'Total por dia',
+    description: 'Soma dos valores de cada dia.',
+    fn: (despesas) => {
+      const soma = new Map();
+      for (const d of despesas) {
+        if (d.valor === null || d.valor === '') continue;
+        const dia = String(d.data).slice(0, 10);
+        soma.set(dia, (soma.get(dia) || 0) + Number(d.valor));
+      }
+      return [...soma].sort().map(([dia, total]) => ({ dia, mes: dia.slice(0, 7), total: Math.round(total * 100) / 100 }));
+    },
+  });
+
+  dash.calc('projecao', {
+    inputs: ['despesas', 'mensal'],
+    title: 'Ritmo e provisão mensal',
+    description: 'Média por dia do mês mais recente, projeção até o fim do mês, média dos até 3 meses completos anteriores (ou a projeção, se ainda não houver) e essa média + 10%.',
+    fn: (despesas, mensal) => {
+      if (!mensal.length) return [];
+      const MARGEM = 0.1;
+      const datas = despesas.map((d) => String(d.data).slice(0, 10)).sort();
+      const primeiro = datas[0];
+      const ultimo = datas[datas.length - 1];
+      const mes = ultimo.slice(0, 7);
+      const [ano, m] = mes.split('-').map(Number);
+      const dias_no_mes = new Date(Date.UTC(ano, m, 0)).getUTCDate();
+      const inicio = primeiro.slice(0, 7) === mes ? Number(primeiro.slice(8, 10)) : 1;
+      const hoje = Number(ultimo.slice(8, 10));
+      const dias = hoje - inicio + 1;
+      const atual = mensal.find((r) => r.mes === mes);
+      const gasto = atual ? atual.total : 0;
+      const media_diaria = gasto / dias;
+      const projecao_mes = gasto + media_diaria * (dias_no_mes - hoje);
+      const anteriores = mensal.filter((r) => r.mes < mes).slice(-3);
+      const media_mensal = anteriores.length
+        ? anteriores.reduce((s, r) => s + r.total, 0) / anteriores.length
+        : projecao_mes;
+      const r2 = (x) => Math.round(x * 100) / 100;
+      return [{
+        mes, gasto, dias, dias_no_mes,
+        media_diaria: r2(media_diaria),
+        projecao_mes: r2(projecao_mes),
+        meses_base: anteriores.length,
+        media_mensal: r2(media_mensal),
+        provisao_mensal: r2(media_mensal * (1 + MARGEM)),
+      }];
+    },
+  });
+
+  dash.calc('horizontes', {
+    inputs: ['projecao'],
+    title: 'Reserva por horizonte',
+    description: 'Média mensal e provisão (média + 10%) multiplicadas por 1, 3, 6 e 12 meses.',
+    fn: (projecao) => projecao.length
+      ? [1, 3, 6, 12].map((meses) => ({
+          meses,
+          base: Math.round(projecao[0].media_mensal * meses * 100) / 100,
+          com_margem: Math.round(projecao[0].provisao_mensal * meses * 100) / 100,
+        }))
+      : [],
+  });
+
+  const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+  const brlCurto = (v) => (Math.abs(v) >= 1000 ? 'R$ ' + d3.format('.1~f')(v / 1000).replace('.', ',') + ' mil' : brl.format(v).replace(/,00$/, ''));
+  const NOMES_MES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  const nomeMes = (mes) => NOMES_MES[Number(mes.slice(5, 7)) - 1] + ' ' + mes.slice(0, 4);
+  const diaMes = (iso) => iso.slice(8, 10) + '/' + iso.slice(5, 7);
+  const mark = (el, source, field, where) => {
+    el.dataset.source = source;
+    if (field) el.dataset.field = field;
+    if (where) el.dataset.where = where; else delete el.dataset.where;
+  };
+  const pronto = (...ids) => ids.every((id) => dash.data(id).status === 'ok');
+  const falhou = (...ids) => ids.some((id) => ['error', 'connect', 'declined', 'missing'].includes(dash.data(id).status));
+  const set = (sel, texto) => { const el = document.querySelector(sel); el.textContent = texto; el.classList.remove('dash-skeleton'); return el; };
+
+  const sel = document.getElementById('mes');
+  sel.addEventListener('change', () => dash.setParams({ mes: sel.value }));
+
+  function tooltip(box) {
+    let tip = box.querySelector('.gc-tip');
+    if (!tip) { tip = document.createElement('div'); tip.className = 'gc-tip'; tip.hidden = true; box.appendChild(tip); }
+    return {
+      show(event, titulo, linha) {
+        tip.replaceChildren();
+        const t = document.createElement('div'); t.className = 't'; t.textContent = titulo;
+        const l = document.createElement('div'); l.textContent = linha;
+        tip.append(t, l);
+        tip.hidden = false;
+        const [x, y] = d3.pointer(event, box);
+        const w = tip.offsetWidth;
+        tip.style.left = Math.max(0, Math.min(box.clientWidth - w, x - w / 2)) + 'px';
+        tip.style.top = Math.max(0, y - tip.offsetHeight - 10) + 'px';
+      },
+      hide() { tip.hidden = true; },
+    };
+  }
+
+  function semDados(box, ids, msg) {
+    box.replaceChildren();
+    if (falhou(...ids)) { const f = document.createElement('div'); f.className = 'gc-falha'; f.textContent = 'Failed to load'; box.appendChild(f); return true; }
+    if (!pronto(...ids)) { box.classList.add('dash-skeleton'); return true; }
+    box.classList.remove('dash-skeleton');
+    if (msg) { const p = document.createElement('p'); p.className = 'nota'; p.textContent = msg; box.appendChild(p); return true; }
+    return false;
+  }
+
+  // Barras verticais: itens [{rotulo, valor, contorno?, titulo}]
+  function barras(box, itens, { contorno = false } = {}) {
+    const W = box.clientWidth || 320, H = 220;
+    const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const maxV = d3.max(itens, (d) => Math.max(d.valor, d.contorno || 0)) || 1;
+    const y = d3.scaleLinear([0, maxV], [H - 24, 10]).nice();
+    const eixo = svg.append('g').attr('font-size', null).attr('font-family', null);
+    const ticks = y.ticks(4);
+    const medida = svg.append('text').attr('font-size', 'var(--cds-font-size-caption)').attr('visibility', 'hidden');
+    const ml = d3.max(ticks, (t) => medida.text(brlCurto(t)).node().getComputedTextLength()) + 8;
+    medida.remove();
+    const x = d3.scaleBand(itens.map((d) => d.rotulo), [ml, W - 4]).padding(0.3);
+    for (const t of ticks) {
+      eixo.append('line').attr('x1', ml).attr('x2', W - 4).attr('y1', y(t)).attr('y2', y(t)).attr('stroke', 'var(--cds-chart-grid)');
+      eixo.append('text').attr('x', ml - 6).attr('y', y(t)).attr('dy', '0.32em').attr('text-anchor', 'end')
+        .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(brlCurto(t));
+    }
+    const bw = Math.min(32, x.bandwidth());
+    const passo = Math.ceil(itens.length / Math.max(1, Math.floor((W - ml) / 44)));
+    itens.forEach((d, i) => {
+      if (i % passo === 0) {
+        svg.append('text').attr('x', x(d.rotulo) + x.bandwidth() / 2).attr('y', H - 6).attr('text-anchor', 'middle')
+          .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(d.rotulo);
+      }
+    });
+    const tip = tooltip(box);
+    const g = svg.selectAll('g.b').data(itens).join('g').attr('class', 'b');
+    if (contorno) {
+      g.filter((d) => d.contorno).append('rect')
+        .attr('x', (d) => x(d.rotulo) + (x.bandwidth() - bw) / 2).attr('width', bw)
+        .attr('y', (d) => y(d.contorno)).attr('height', (d) => y(0) - y(d.contorno)).attr('rx', 4)
+        .attr('fill', 'none').attr('stroke', dash.colors[0]).attr('stroke-dasharray', '4 3');
+    }
+    g.append('rect')
+      .attr('x', (d) => x(d.rotulo) + (x.bandwidth() - bw) / 2).attr('width', bw)
+      .attr('y', (d) => y(d.valor)).attr('height', (d) => Math.max(0, y(0) - y(d.valor))).attr('rx', 4)
+      .attr('fill', dash.colors[0]);
+    g.append('rect').attr('x', (d) => x(d.rotulo)).attr('width', x.bandwidth()).attr('y', 0).attr('height', H - 24).attr('fill', 'transparent')
+      .on('mousemove', (event, d) => tip.show(event, d.titulo, d.linha))
+      .on('mouseleave', () => tip.hide());
+  }
+
+  // Barras horizontais por categoria
+  function barrasH(box, itens) {
+    const linha = 30, W = box.clientWidth || 320, H = Math.max(60, itens.length * linha + 8);
+    const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const medida = svg.append('text').style('font-size', 'var(--cds-font-size-caption)').attr('visibility', 'hidden');
+    const ml = d3.max(itens, (d) => medida.text(d.rotulo).node().getComputedTextLength()) + 10;
+    const mr = d3.max(itens, (d) => medida.text(brl.format(d.valor)).node().getComputedTextLength()) + 10;
+    medida.remove();
+    const x = d3.scaleLinear([0, d3.max(itens, (d) => d.valor) || 1], [ml, W - mr]);
+    const tip = tooltip(box);
+    itens.forEach((d, i) => {
+      const yy = i * linha + 4;
+      svg.append('text').attr('x', ml - 8).attr('y', yy + 11).attr('text-anchor', 'end').attr('fill', 'var(--color-fg)')
+        .style('font-size', 'var(--cds-font-size-caption)').text(d.rotulo);
+      svg.append('rect').attr('x', ml).attr('y', yy + 2).attr('width', Math.max(2, x(d.valor) - ml)).attr('height', 18).attr('rx', 4)
+        .attr('fill', i === 0 ? dash.colors[0] : 'var(--cds-chart-muted)')
+        .on('mousemove', (event) => tip.show(event, d.rotulo, brl.format(d.valor)))
+        .on('mouseleave', () => tip.hide());
+      svg.append('text').attr('x', x(d.valor) + 6).attr('y', yy + 11).attr('fill', 'var(--color-fg-muted)')
+        .style('font-size', 'var(--cds-font-size-caption)').style('font-variant-numeric', 'tabular-nums').text(brl.format(d.valor));
+    });
+    box.style.minHeight = H + 'px';
+  }
+
+  dash.onData(() => {
+    const mensal = dash.data('mensal');
+    const meses = mensal.status === 'ok' ? mensal.data : [];
+    const atual = meses.length ? meses[meses.length - 1].mes : null;
+    let mes = dash.params().mes;
+    if (!meses.some((r) => r.mes === mes)) mes = atual;
+
+    // seletor de mês
+    if (document.activeElement !== sel) {
+      sel.replaceChildren(...[...meses].reverse().map((r) => new Option(nomeMes(r.mes), r.mes)));
+      if (mes) sel.value = mes;
+    }
+
+    // resumo e cartões do mês
+    const linha = meses.find((r) => r.mes === mes);
+    const resumo = document.querySelector('.gc-resumo');
+    if (linha) {
+      mark(resumo, 'mensal', 'total', 'mes=' + mes);
+      set('.gc-resumo', `Em ${nomeMes(mes)} vocês anotaram ${brl.format(linha.total)} em ${linha.lancamentos} gastos` +
+        (linha.pendentes ? `, e ${linha.pendentes} ainda estão sem valor.` : '.'));
+      mark(set('#t-total', brl.format(linha.total)), 'mensal', 'total', 'mes=' + mes);
+      mark(set('#t-n', String(linha.lancamentos)), 'mensal', 'lancamentos', 'mes=' + mes);
+      const tPend = set('#t-pend', linha.pendentes ? `${linha.pendentes} sem valor` : 'Nenhum sem valor');
+      if (linha.pendentes) mark(tPend, 'mensal', 'pendentes', 'mes=' + mes); else delete tPend.dataset.source;
+    } else if (!pronto('mensal')) {
+      for (const s of ['.gc-resumo', '#t-total', '#t-n']) document.querySelector(s).classList.add('dash-skeleton');
+    }
+
+    const varr = dash.data('variacao');
+    const v = varr.status === 'ok' ? varr.data.find((r) => r.mes === mes) : null;
+    const tDelta = document.getElementById('t-delta');
+    if (v && v.delta !== null) {
+      mark(tDelta, 'variacao', 'delta', 'mes=' + mes);
+      tDelta.textContent = (v.delta > 0 ? '+' : '') + brl.format(v.delta) + ' vs. mês anterior';
+      tDelta.style.color = v.delta > 0 ? 'var(--color-bad)' : 'var(--color-ok)';
+    } else {
+      delete tDelta.dataset.source;
+      tDelta.textContent = v ? 'Primeiro mês anotado' : '—';
+      tDelta.style.color = '';
+    }
+
+    // ritmo do mês atual
+    const proj = dash.data('projecao');
+    const p = proj.status === 'ok' && proj.data.length ? proj.data[0] : null;
+    if (p) {
+      const ehAtual = mes === p.mes;
+      const tMedia = set('#t-media', ehAtual ? brl.format(p.media_diaria) : '—');
+      if (ehAtual) mark(tMedia, 'projecao', 'media_diaria'); else delete tMedia.dataset.source;
+      set('#t-dias', ehAtual ? `${p.dias} dias com anotações de ${p.dias_no_mes}` : `Só para ${nomeMes(p.mes)}`);
+      const tProj = set('#t-proj', ehAtual ? brl.format(p.projecao_mes) : '—');
+      if (ehAtual) mark(tProj, 'projecao', 'projecao_mes'); else delete tProj.dataset.source;
+      set('#p-media', brl.format(p.media_mensal));
+      set('#p-base', p.meses_base ? `Média dos últimos ${p.meses_base} ${p.meses_base > 1 ? 'meses completos' : 'mês completo'}` : `Projeção de ${nomeMes(p.mes)}`);
+      set('#p-prov', brl.format(p.provisao_mensal));
+      const aviso = document.getElementById('p-aviso');
+      aviso.hidden = p.meses_base >= 3;
+      aviso.textContent = p.meses_base === 0
+        ? `Estimativa fraca: só há ${p.dias} dias de anotações. Ela fica mais confiável a cada mês completo.`
+        : `Baseada em ${p.meses_base} ${p.meses_base > 1 ? 'meses' : 'mês'}; com 3 meses completos a média fica mais estável.`;
+    }
+
+    // gráfico: total por mês
+    const bMeses = document.getElementById('ch-meses');
+    if (!semDados(bMeses, ['mensal', 'projecao'])) {
+      barras(bMeses, meses.map((r) => ({
+        rotulo: NOMES_MES[Number(r.mes.slice(5, 7)) - 1].slice(0, 3) + '/' + r.mes.slice(2, 4),
+        valor: r.total,
+        contorno: p && r.mes === p.mes ? p.projecao_mes : 0,
+        titulo: nomeMes(r.mes),
+        linha: brl.format(r.total) + (p && r.mes === p.mes ? ` · projeção ${brl.format(p.projecao_mes)}` : ''),
+      })), { contorno: true });
+    }
+
+    // gráfico: categorias
+    const bCat = document.getElementById('ch-cat');
+    const cats = dash.data('categorias');
+    const itensCat = cats.status === 'ok'
+      ? cats.data.filter((r) => r.mes === mes).sort((a, b) => b.total - a.total).map((r) => ({ rotulo: r.categoria, valor: r.total }))
+      : [];
+    if (!semDados(bCat, ['categorias'], itensCat.length ? null : 'Nenhum gasto com valor neste mês.')) barrasH(bCat, itensCat);
+    document.getElementById('nota-cat').textContent = mes ? `Em ${nomeMes(mes)}.` : 'No mês escolhido.';
+
+    // gráfico: por dia
+    const bDias = document.getElementById('ch-dias');
+    const dia = dash.data('diario');
+    const itensDia = dia.status === 'ok' ? dia.data.filter((r) => r.mes === mes) : [];
+    if (!semDados(bDias, ['diario'], itensDia.length ? null : 'Nenhum gasto com valor neste mês.')) {
+      barras(bDias, itensDia.map((r) => ({ rotulo: diaMes(r.dia), valor: r.total, titulo: diaMes(r.dia), linha: brl.format(r.total) })));
+    }
+
+    // planejamento: reserva acumulada
+    const hz = dash.data('horizontes');
+    const bHz = document.getElementById('ch-horiz');
+    if (!semDados(bHz, ['horizontes'], hz.status === 'ok' && !hz.data.length ? 'Sem gastos ainda.' : null)) {
+      barras(bHz, hz.data.map((r) => ({
+        rotulo: r.meses + (r.meses > 1 ? ' meses' : ' mês'), valor: r.com_margem,
+        titulo: r.meses + (r.meses > 1 ? ' meses' : ' mês'), linha: brl.format(r.com_margem) + ' com margem',
+      })));
+    }
+    const tbH = document.querySelector('#tb-horiz tbody');
+    tbH.replaceChildren(...(hz.status === 'ok' ? hz.data : []).map((r) => {
+      const tr = document.createElement('tr');
+      tr.dataset.key = String(r.meses);
+      for (const [txt, num] of [[String(r.meses), false], [brl.format(r.base), true], [brl.format(r.com_margem), true]]) {
+        const td = document.createElement('td'); td.textContent = txt; if (num) td.className = 'num'; tr.appendChild(td);
+      }
+      return tr;
+    }));
+
+    // lançamentos do mês
+    const desp = dash.data('despesas');
+    const tb = document.querySelector('#tb-lanc tbody');
+    const linhas = desp.status === 'ok'
+      ? desp.data.filter((d) => String(d.data).slice(0, 7) === mes).sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : Number(a.id) - Number(b.id)))
+      : [];
+    tb.replaceChildren(...linhas.map((d) => {
+      const tr = document.createElement('tr');
+      tr.dataset.key = String(d.id);
+      const sem = d.valor === null || d.valor === '';
+      const cels = [
+        [diaMes(String(d.data)), ''],
+        [d.descricao, ''],
+        [d.categoria, ''],
+        [sem ? 'sem valor' : brl.format(Number(d.valor)), sem ? 'num pend' : 'num'],
+        [d.pagamento || '—', 'opt'],
+        [d.autor, 'opt'],
+      ];
+      for (const [txt, cls] of cels) { const td = document.createElement('td'); td.textContent = txt; if (cls) td.className = cls; tr.appendChild(td); }
+      return tr;
+    }));
+  });
+</script>
