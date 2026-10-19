@@ -17,7 +17,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 RAIZ = Path(__file__).resolve().parent.parent
 SAIDA = RAIZ / "planilha" / "Gastos_Casa.xlsx"
 CATEGORIAS = ["Alimentação", "Casa/contas", "Transporte", "Saúde", "Lazer", "Outros"]
-LINHAS = 1000  # linhas preparadas para novos lançamentos
+LINHAS = 1000  # linhas que as fórmulas cobrem
 
 FONTE = "Arial"
 VERDE = "1E6B52"
@@ -51,8 +51,8 @@ def cabecalho(ws, linha, nomes, larguras=None):
 def lancamentos(wb, despesas):
     ws = wb.active
     ws.title = "Lançamentos"
-    cabecalho(ws, 1, ["Data", "Descrição", "Categoria", "Valor", "Pagamento", "Anotado por", "Mês"],
-              [12, 34, 16, 14, 13, 14, 12])
+    cabecalho(ws, 1, ["Data", "Descrição", "Categoria", "Valor", "Pagamento", "Anotado por"],
+              [12, 34, 16, 14, 13, 14])
     ws.freeze_panes = "A2"
     for r, d in enumerate(despesas, start=2):
         ws.cell(r, 1, date.fromisoformat(d["data"]))
@@ -61,16 +61,14 @@ def lancamentos(wb, despesas):
         ws.cell(r, 4, d["valor"])
         ws.cell(r, 5, d["pagamento"] or None)
         ws.cell(r, 6, d["autor"])
-    for r in range(2, LINHAS + 2):
-        ws.cell(r, 7, f'=IF(A{r}="","",DATE(YEAR(A{r}),MONTH(A{r}),1))')
+    # Formata só as linhas preenchidas e uma folga: o arquivo precisa ser pequeno para subir no Drive
+    for r in range(2, len(despesas) + 52):
         ws.cell(r, 1).number_format = "dd/mm/yyyy"
         ws.cell(r, 4).number_format = MOEDA
-        ws.cell(r, 7).number_format = MES
-        for c in range(1, 8):
+        for c in range(1, 7):
             ws.cell(r, c).font = normal
             ws.cell(r, c).border = Border(bottom=BORDA)
-        ws.cell(r, 7).font = Font(name=FONTE, size=10, color="5F6B66")
-    ws.auto_filter.ref = f"A1:G{LINHAS + 1}"
+    ws.auto_filter.ref = f"A1:F{LINHAS + 1}"
 
     dv = DataValidation(type="list", formula1='"' + ",".join(CATEGORIAS) + '"', allow_blank=True)
     dv.error, dv.errorTitle = "Escolha uma das categorias da lista.", "Categoria"
@@ -81,7 +79,7 @@ def lancamentos(wb, despesas):
     ws.conditional_formatting.add(
         f"A2:F{LINHAS + 1}",
         FormulaRule(formula=['AND($B2<>"",$D2="")'], fill=PatternFill("solid", fgColor="FCE8B2")))
-    ws["H1"] = "Linhas amarelas estão sem valor e não entram nos totais. A coluna Mês é calculada."
+    ws["H1"] = "Linhas amarelas estão sem valor e não entram nos totais."
     ws["H1"].font = nota
     return ws
 
@@ -93,14 +91,15 @@ def resumo(wb, primeiro_mes):
     ws["A2"] = "Totais calculados a partir da aba Lançamentos. Itens sem valor contam só como pendentes."
     ws["A2"].font = nota
     cabecalho(ws, 4, ["Mês", "Total", "Gastos com valor", "Sem valor", "Vs. mês anterior"], [14, 15, 16, 12, 17])
-    L = f"Lançamentos!$G$2:$G${LINHAS + 1}"
+    D = f"Lançamentos!$A$2:$A${LINHAS + 1}"
     V = f"Lançamentos!$D$2:$D${LINHAS + 1}"
+    no_mes = lambda m: f'{D},">="&{m},{D},"<"&EDATE({m},1)'
     for i in range(12):
         r = 5 + i
         ws.cell(r, 1, primeiro_mes if i == 0 else f"=EDATE(A{r - 1},1)").number_format = MES
-        ws.cell(r, 2, f"=SUMIFS({V},{L},A{r})").number_format = MOEDA
-        ws.cell(r, 3, f'=COUNTIFS({L},A{r},{V},"<>")')
-        ws.cell(r, 4, f'=COUNTIFS({L},A{r},{V},"")')
+        ws.cell(r, 2, f"=SUMIFS({V},{no_mes(f'A{r}')})").number_format = MOEDA
+        ws.cell(r, 3, f'=COUNTIFS({no_mes(f"A{r}")},{V},"<>")')
+        ws.cell(r, 4, f'=COUNTIFS({no_mes(f"A{r}")},{V},"")')
         ws.cell(r, 5, "" if i == 0 else f'=IF(B{r}=0,"",B{r}-B{r - 1})').number_format = MOEDA
         for c in range(1, 6):
             ws.cell(r, c).font = normal
@@ -123,7 +122,7 @@ def resumo(wb, primeiro_mes):
         ws.cell(r, 7, cat).font = normal
         for i in range(12):
             col = ws.cell(4, 8 + i).column_letter
-            c = ws.cell(r, 8 + i, f"=SUMIFS({V},{L},{col}$4,{C},$G{r})")
+            c = ws.cell(r, 8 + i, f"=SUMIFS({V},{no_mes(f'{col}$4')},{C},$G{r})")
             c.number_format, c.font, c.border = MOEDA, normal, Border(bottom=BORDA)
     r = 5 + len(CATEGORIAS)
     ws.cell(r, 7, "Total").font = Font(name=FONTE, size=10, bold=True)
@@ -146,7 +145,7 @@ def resumo(wb, primeiro_mes):
     pizza.title = "Por categoria (mês mais recente com gastos)"
     ws["G13"] = "Mês mais recente"
     ws["G13"].font = nota
-    ws["H13"] = f"=MAX({L})"
+    ws["H13"] = f"=DATE(YEAR(MAX({D})),MONTH(MAX({D})),1)"
     ws["H13"].number_format = MES
     for j in range(len(CATEGORIAS)):
         ws.cell(14 + j, 7, f"=G{5 + j}").font = normal
@@ -175,11 +174,10 @@ def planejamento(wb):
 
     D = f"Lançamentos!$A$2:$A${LINHAS + 1}"
     V = f"Lançamentos!$D$2:$D${LINHAS + 1}"
-    L = f"Lançamentos!$G$2:$G${LINHAS + 1}"
     linhas = [
         ("Margem de segurança", 0.10, "0%", "Edite: quanto a mais separar além da média."),
-        ("Mês mais recente", f"=MAX({L})", MES, None),
-        ("Gasto no mês mais recente", f"=SUMIFS({V},{L},B5)", MOEDA, None),
+        ("Mês mais recente", f"=DATE(YEAR(MAX({D})),MONTH(MAX({D})),1)", MES, None),
+        ("Gasto no mês mais recente", f'=SUMIFS({V},{D},">="&B5,{D},"<"&EDATE(B5,1))', MOEDA, None),
         ("Primeiro dia com anotação no mês", f"=IF(MIN({D})>=B5,DAY(MIN({D})),1)", "0", "Se o grupo começou no meio do mês, conta a partir daí."),
         ("Último dia com anotação", f"=DAY(MAX({D}))", "0", None),
         ("Dias com anotações", "=B8-B7+1", "0", None),
