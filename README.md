@@ -16,3 +16,4 @@ Lê o export do grupo do WhatsApp "GASTOS casa!!!!" e alimenta o painel **Gastos
 - `scripts/categorias.json` — palavras-chave de cada categoria (edite para ajustar).
 - `dados/despesas.csv` / `dados/despesas.json` — gastos extraídos.
 - `painel/index.html` — código da página do painel.
+- `planilha/Gastos_Casa.xlsx` — planilha para o Google Sheets (gerada por `python3 scripts/gerar_planilha.py`).
