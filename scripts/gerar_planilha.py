@@ -23,6 +23,8 @@ LINHAS = 1000  # linhas que as fórmulas cobrem
 FONTE = "Arial"
 VERDE = "1E6B52"
 VERDE_CLARO = "E3F1EA"
+ROXO, ROXO_CLARO = "6B4599", "EDE6F5"
+AZUL, AZUL_CLARO = "3366A6", "E6EDF7"
 CINZA = "F3F5F4"
 BORDA = Side(style="thin", color="D5DBD8")
 MOEDA = '"R$" #,##0.00;-"R$" #,##0.00;"-"'
@@ -93,94 +95,104 @@ def lancamentos(wb, despesas):
 
 
 def resumo(wb, inicio):
+    """Três blocos lado a lado que nunca se somam: fatura do cartão, vale-alimentação e conta."""
     ws = wb.create_sheet("Resumo")
     ws["A1"] = "Gastos Casa — resumo por fatura"
     ws["A1"].font = titulo
-    ws["A2"] = ("Cada fatura vai do dia 26 ao dia 25. Cartão = crédito (paga no mês seguinte); "
-                "Vale = sai do saldo do vale; Conta = Pix, débito e dinheiro.")
+    ws["A2"] = "Cada bloco é um dinheiro diferente e não se soma com os outros. Cada período vai do dia 26 ao dia 25."
     ws["A2"].font = nota
-    cabecalho(ws, 4, ["Fatura (início)", "Cartão", "Vale", "Conta", "Cartão + conta", "Gastos com valor",
-                      "Sem valor", "Cartão + conta vs. anterior", "Gasto total da casa"],
-              [15, 14, 14, 14, 14, 14, 12, 16, 16])
+    blocos = (("A4:E4", "FATURA DO CARTÃO DE CRÉDITO — o que vocês vão pagar", VERDE, VERDE_CLARO, range(1, 6)),
+              ("G4:I4", "VALE-ALIMENTAÇÃO — saldo que a empresa coloca", ROXO, ROXO_CLARO, range(7, 10)),
+              ("K4:K4", "CONTA — Pix, débito, dinheiro", AZUL, AZUL_CLARO, range(11, 12)))
+    nomes = {1: "Início", 2: "Fim", 3: "Valor da fatura", 4: "Compras no cartão", 5: "Vs. fatura anterior",
+             7: "Crédito do vale", 8: "Gasto no vale", 9: "Saldo do vale", 11: "Gasto na conta", 13: "Cartão + conta"}
+    for faixa, texto, escuro, claro, cols in blocos:
+        if ":" in faixa and faixa.split(":")[0] != faixa.split(":")[1]:
+            ws.merge_cells(faixa)
+        c = ws[faixa.split(":")[0]]
+        c.value, c.font, c.fill = texto, cabec, PatternFill("solid", fgColor=escuro)
+        c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        for col in cols:
+            h = ws.cell(5, col, nomes[col])
+            h.font, h.fill = Font(name=FONTE, size=10, bold=True), PatternFill("solid", fgColor=claro)
+            h.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    ws["M4"], ws["M5"] = "Cartão + conta (usado no Planejamento)", "Cartão + conta"
+    ws.column_dimensions["M"].hidden = True
+    for col, w in zip("ABCDEFGHIJKL", (12, 12, 16, 14, 16, 2, 15, 15, 15, 2, 18, 2)):
+        ws.column_dimensions[col].width = w
+
     D = f"Lançamentos!$A$2:$A${LINHAS + 1}"
     V = f"Lançamentos!$D$2:$D${LINHAS + 1}"
     P = f"Lançamentos!$E$2:$E${LINHAS + 1}"
-    no_ciclo = lambda m: f'{D},">="&{m},{D},"<"&EDATE({m},1)'
-    forma = lambda m, f: f'SUMIFS({V},{no_ciclo(m)},{P},"{f}")'
+    C = f"Lançamentos!$C$2:$C${LINHAS + 1}"
+    periodo = lambda r: f'{D},">="&$A{r},{D},"<="&$B{r}'
+    forma = lambda r, f: f'SUMIFS({V},{periodo(r)},{P},"{f}")'
     for i in range(12):
-        r = 5 + i
-        m = f"A{r}"
-        ws.cell(r, 1, inicio if i == 0 else f"=EDATE(A{r - 1},1)").number_format = CICLO
-        ws.cell(r, 2, f"={forma(m, 'Crédito')}")
-        ws.cell(r, 3, f"={forma(m, 'Vale-alimentação')}")
-        ws.cell(r, 4, f"={forma(m, 'Pix')}+{forma(m, 'Débito')}+{forma(m, 'Dinheiro')}")
-        ws.cell(r, 5, f"=B{r}+D{r}")
-        ws.cell(r, 6, f'=COUNTIFS({no_ciclo(m)},{V},"<>")')
-        ws.cell(r, 7, f'=COUNTIFS({no_ciclo(m)},{V},"")')
-        ws.cell(r, 8, "" if i == 0 else f'=IF(E{r}=0,"",E{r}-E{r - 1})')
-        ws.cell(r, 9, f"=SUMIFS({V},{no_ciclo(m)})")
-        for col in range(1, 10):
+        r = 6 + i
+        ws.cell(r, 1, inicio if i == 0 else f"=EDATE(A{r - 1},1)")
+        ws.cell(r, 2, f"=EDATE(A{r},1)-1")
+        ws.cell(r, 3, f"={forma(r, 'Crédito')}")
+        ws.cell(r, 4, f'=COUNTIFS({periodo(r)},{P},"Crédito")')
+        ws.cell(r, 5, "" if i == 0 else f'=IF(C{r}=0,"",C{r}-C{r - 1})')
+        ws.cell(r, 7, f'=IF($A{r}>Planejamento!$B$6,"",Planejamento!$B$22)')
+        ws.cell(r, 8, f"={forma(r, 'Vale-alimentação')}")
+        ws.cell(r, 9, f'=IF(G{r}="","",G{r}-H{r})')
+        ws.cell(r, 11, f"={forma(r, 'Pix')}+{forma(r, 'Débito')}+{forma(r, 'Dinheiro')}")
+        ws.cell(r, 13, f"=C{r}+K{r}")
+        for col in (1, 2, 3, 4, 5, 7, 8, 9, 11, 13):
             ws.cell(r, col).font = normal
             ws.cell(r, col).border = Border(bottom=BORDA)
-        for col in (2, 3, 4, 5, 8, 9):
+        for col in (1, 2):
+            ws.cell(r, col).number_format = CICLO
+        for col in (3, 5, 7, 8, 9, 11, 13):
             ws.cell(r, col).number_format = MOEDA
-        ws.cell(r, 9).font = nota
-    ws.cell(5, 1).font = entrada
-    ws.cell(5, 1).comment = Comment("Início da primeira fatura anotada (26/10/2026, fechamento dos cartões). As seguintes são calculadas.", "Gastos Casa")
+        ws.cell(r, 3).font = ws.cell(r, 9).font = Font(name=FONTE, size=10, bold=True)
+    ws.cell(6, 1).font = entrada
+    ws.cell(6, 1).comment = Comment("Início da primeira fatura anotada (26/10/2026, fechamento dos cartões). As seguintes são calculadas.", "Gastos Casa")
+    ws.conditional_formatting.add("I6:I17", FormulaRule(formula=["AND(ISNUMBER(I6),I6<0)"], font=Font(color="BF1A1A")))
 
-    # Categorias × faturas (todas as formas de pagamento, só como referência de consumo)
-    G0 = 11  # coluna K
-    ws.cell(4, G0, "Categoria")
-    for i in range(12):
-        ws.cell(4, G0 + 1 + i, f"=A{5 + i}").number_format = CICLO
-    for col in range(G0, G0 + 13):
-        ws.cell(4, col).font, ws.cell(4, col).fill = cabec, fundo_cabec
-        ws.cell(4, col).alignment = Alignment(horizontal="center")
-        ws.column_dimensions[ws.cell(4, col).column_letter].width = 13
-    ws.column_dimensions["J"].width = 3
-    ws.column_dimensions["K"].width = 16
-    C = f"Lançamentos!$C$2:$C${LINHAS + 1}"
+    # Fatura atual por categoria, uma coluna por dinheiro
+    ws["A20"] = "Fatura atual por categoria (cada coluna é um dinheiro diferente)"
+    ws["A20"].font = Font(name=FONTE, size=12, bold=True, color=VERDE)
+    for col, (nome, cor) in enumerate((("Categoria", "EDF0F0"), ("Cartão", VERDE_CLARO), ("Vale", ROXO_CLARO), ("Conta", AZUL_CLARO)), start=1):
+        h = ws.cell(21, col, nome)
+        h.font, h.fill = Font(name=FONTE, size=10, bold=True), PatternFill("solid", fgColor=cor)
+    atual = f'{D},">="&Planejamento!$B$6,{D},"<="&Planejamento!$B$7'
+    soma = lambda r, f: f'SUMIFS({V},{atual},{C},$A{r},{P},"{f}")'
     for j, cat in enumerate(CATEGORIAS):
-        r = 5 + j
-        ws.cell(r, G0, cat).font = normal
-        for i in range(12):
-            col = ws.cell(4, G0 + 1 + i).column_letter
-            c = ws.cell(r, G0 + 1 + i, f"=SUMIFS({V},{no_ciclo(f'{col}$4')},{C},$K{r})")
-            c.number_format, c.font, c.border = MOEDA, normal, Border(bottom=BORDA)
-    r = 5 + len(CATEGORIAS)
-    ws.cell(r, G0, "Total").font = Font(name=FONTE, size=10, bold=True)
-    for i in range(12):
-        col = ws.cell(4, G0 + 1 + i).column_letter
-        c = ws.cell(r, G0 + 1 + i, f"=SUM({col}5:{col}{r - 1})")
-        c.number_format, c.font = MOEDA, Font(name=FONTE, size=10, bold=True)
+        r = 22 + j
+        ws.cell(r, 1, cat)
+        ws.cell(r, 2, f"={soma(r, 'Crédito')}")
+        ws.cell(r, 3, f"={soma(r, 'Vale-alimentação')}")
+        ws.cell(r, 4, f"={soma(r, 'Pix')}+{soma(r, 'Débito')}+{soma(r, 'Dinheiro')}")
+    r = 22 + len(CATEGORIAS)
+    ws.cell(r, 1, "Total")
+    for col in "BCD":
+        ws[f"{col}{r}"] = f"=SUM({col}22:{col}{r - 1})"
+    for rr in range(22, r + 1):
+        for col in range(1, 5):
+            c = ws.cell(rr, col)
+            c.font, c.border = Font(name=FONTE, size=10, bold=rr == r), Border(bottom=BORDA)
+            if col > 1:
+                c.number_format = MOEDA
+    ws.cell(r + 1, 1, "Não some as colunas: o cartão vai para a fatura, o vale sai do saldo do vale e a conta sai do banco.").font = nota
 
-    # Gráficos
     barras = BarChart()
-    barras.title = "Cartão e conta por fatura (sai do bolso)"
-    barras.y_axis.title = "R$"
-    barras.add_data(Reference(ws, min_col=2, min_row=4, max_row=16), titles_from_data=True)
-    barras.add_data(Reference(ws, min_col=4, min_row=4, max_row=16), titles_from_data=True)
-    barras.set_categories(Reference(ws, min_col=1, min_row=5, max_row=16))
-    barras.height, barras.width = 8, 18
-    ws.add_chart(barras, "A21")
+    barras.title = "Fatura do cartão por período"
+    barras.add_data(Reference(ws, min_col=3, min_row=5, max_row=17), titles_from_data=True)
+    barras.set_categories(Reference(ws, min_col=1, min_row=6, max_row=17))
+    barras.legend = None
+    barras.height, barras.width = 7, 13
+    ws.add_chart(barras, "A31")
 
-    pizza = PieChart()
-    pizza.title = "Por categoria na fatura atual (todas as formas)"
-    ws["K13"] = "Fatura atual"
-    ws["K13"].font = nota
-    ws["L13"] = "=Planejamento!$B$6"
-    ws["L13"].number_format = CICLO
-    for j in range(len(CATEGORIAS)):
-        ws.cell(14 + j, G0, f"=K{5 + j}").font = normal
-        c = ws.cell(14 + j, G0 + 1, f"=INDEX($L{5 + j}:$W{5 + j},MATCH($L$13,$L$4:$W$4,0))")
-        c.number_format, c.font = MOEDA, normal
-    pizza.add_data(Reference(ws, min_col=G0 + 1, min_row=14, max_row=13 + len(CATEGORIAS)))
-    pizza.set_categories(Reference(ws, min_col=G0, min_row=14, max_row=13 + len(CATEGORIAS)))
-    pizza.dataLabels = DataLabelList()
-    pizza.dataLabels.showPercent = True
-    pizza.height, pizza.width = 8, 12
-    ws.add_chart(pizza, "H21")
-    ws.freeze_panes = "A5"
+    vale = BarChart()
+    vale.title = "Vale-alimentação: gasto e saldo por período"
+    vale.grouping, vale.overlap = "stacked", 100
+    vale.add_data(Reference(ws, min_col=8, max_col=9, min_row=5, max_row=17), titles_from_data=True)
+    vale.set_categories(Reference(ws, min_col=1, min_row=6, max_row=17))
+    vale.height, vale.width = 7, 13
+    ws.add_chart(vale, "G31")
+    ws.freeze_panes = "A6"
 
 
 def planejamento(wb, config):
@@ -198,7 +210,7 @@ def planejamento(wb, config):
     D = f"Lançamentos!$A$2:$A${LINHAS + 1}"
     V = f"Lançamentos!$D$2:$D${LINHAS + 1}"
     P = f"Lançamentos!$E$2:$E${LINHAS + 1}"
-    R_A, R_E = "Resumo!$A$5:$A$16", "Resumo!$E$5:$E$16"
+    R_A, R_E = "Resumo!$A$6:$A$17", "Resumo!$M$6:$M$17"
     anteriores = f'{R_A},">="&EDATE(B6,-3),{R_A},"<"&B6,{R_E},">0"'
     na_fatura = f'{D},">="&B6,{D},"<="&B7'
     forma = lambda f: f'SUMIFS({V},{na_fatura},{P},"{f}")'
@@ -206,7 +218,7 @@ def planejamento(wb, config):
     linhas = {
         4: ("Margem de segurança", 0.10, "0%", "Edite: quanto a mais separar além da média."),
         5: ("Dia de fechamento da fatura", config["dia_fechamento"], "0", "Dia em que a fatura dos cartões fecha."),
-        6: ("Fatura atual (início)", f"=IF(COUNT({D})=0,Resumo!$A$5,DATE(YEAR(MAX({D})),MONTH(MAX({D}))-IF(DAY(MAX({D}))<B5,1,0),B5))", CICLO, "Fatura do gasto mais recente."),
+        6: ("Fatura atual (início)", f"=IF(COUNT({D})=0,Resumo!$A$6,DATE(YEAR(MAX({D})),MONTH(MAX({D}))-IF(DAY(MAX({D}))<B5,1,0),B5))", CICLO, "Fatura do gasto mais recente."),
         7: ("Fatura atual (fim)", "=EDATE(B6,1)-1", CICLO, None),
         8: ("Dias na fatura", "=B7-B6+1", "0", None),
         9: ("Dias com anotações", f"=IF(COUNT({D})=0,0,MAX({D})-B6+1)", "0", "Do dia 26 até o gasto mais recente."),
