@@ -95,15 +95,29 @@
   .gc-vazio { display: grid; gap: var(--cds-gap-sm); justify-items: start; padding: var(--cds-pad-md) 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
   .gc-vazio code { font-size: var(--cds-font-size-body); color: var(--color-fg); background: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); }
   .gc-meter.vale > i { background: var(--ic); }
+  .gc-hero .gc-sub { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-lg); margin-top: var(--cds-gap-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-variant-numeric: tabular-nums; }
+  .gc-hero .gc-sub b { color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+  .gc-hero .gc-sub .ref { font-style: italic; }
+  .gc-tile .alerta { color: var(--color-bad); font-weight: var(--cds-font-weight-medium); }
+  .gc .pg { display: inline-flex; align-items: center; gap: .35rem; white-space: nowrap; }
+  .gc .pg::before { content: ""; width: .5rem; height: .5rem; border-radius: 2px; background: var(--pc); flex: none; }
+  .gc-legenda { display: flex; flex-wrap: wrap; gap: var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: var(--cds-gap-xs); }
+  .gc-legenda span { display: inline-flex; align-items: center; gap: .35rem; }
+  .gc-legenda i { width: .6rem; height: .6rem; border-radius: 2px; background: var(--lc); display: inline-block; }
   @media (prefers-reduced-motion: reduce) { .gc-meter > i { transition: none; } }
 </style>
 
 <div class="gc">
   <section class="gc-hero" id="topo">
     <div>
-      <div class="gc-eyebrow" id="h-ciclo">Gastos Casa</div>
+      <div class="gc-eyebrow" id="h-ciclo">Fatura do cartão</div>
       <div class="gc-big dash-skeleton" id="h-total">—</div>
       <p class="gc-resumo dash-skeleton" id="h-resumo">—</p>
+      <div class="gc-sub">
+        <span>Conta (Pix, débito, dinheiro): <b id="h-conta">—</b></span>
+        <span>Vale-alimentação: <b id="h-vale">—</b></span>
+        <span class="ref">Gasto total da casa: <span id="h-geral">—</span></span>
+      </div>
     </div>
     <label class="gc-mes" for="ciclo">Fatura
       <select id="ciclo" data-source="ciclos"></select>
@@ -112,8 +126,26 @@
 
   <section class="gc-section" id="fatura">
     <div class="gc-tiles">
+      <div class="gc-tile" id="tile-vale">
+        <div class="k"><span class="gc-ico" data-ic="4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg></span>Saldo do vale</div>
+        <div class="v dash-skeleton" id="t-vale">—</div>
+        <div class="gc-meter vale" id="t-vale-meter" aria-hidden="true" hidden><i id="t-vale-barra"></i></div>
+        <div class="s" id="t-vale-s">—</div>
+        <div class="s" id="t-vale-proj">—</div>
+      </div>
       <div class="gc-tile">
-        <div class="k"><span class="gc-ico" data-ic="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg></span>Vs. fatura anterior</div>
+        <div class="k"><span class="gc-ico" data-ic="2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>Média por dia (cartão + conta)</div>
+        <div class="v dash-skeleton" id="t-media">—</div>
+        <div class="s" id="t-dias">—</div>
+      </div>
+      <div class="gc-tile">
+        <div class="k"><span class="gc-ico" data-ic="3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Projeção até o dia 25 (cartão + conta)</div>
+        <div class="v dash-skeleton" id="t-proj">—</div>
+        <div class="gc-meter" aria-hidden="true"><i id="t-meter"></i></div>
+        <div class="s" id="t-proj-s">—</div>
+      </div>
+      <div class="gc-tile">
+        <div class="k"><span class="gc-ico" data-ic="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg></span>Vs. fatura anterior (cartão + conta)</div>
         <div class="v dash-skeleton" id="t-delta">—</div>
         <div class="s" id="t-delta-s">—</div>
       </div>
@@ -122,37 +154,21 @@
         <div class="v dash-skeleton" id="t-n">—</div>
         <div class="s" id="t-pend">—</div>
       </div>
-      <div class="gc-tile">
-        <div class="k"><span class="gc-ico" data-ic="4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg></span>Vale-alimentação</div>
-        <div class="v dash-skeleton" id="t-vale">—</div>
-        <div class="gc-meter vale" id="t-vale-meter" aria-hidden="true" hidden><i id="t-vale-barra"></i></div>
-        <div class="s" id="t-vale-s">—</div>
-      </div>
-      <div class="gc-tile">
-        <div class="k"><span class="gc-ico" data-ic="2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>Média por dia</div>
-        <div class="v dash-skeleton" id="t-media">—</div>
-        <div class="s" id="t-dias">—</div>
-      </div>
-      <div class="gc-tile">
-        <div class="k"><span class="gc-ico" data-ic="3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Projeção da fatura</div>
-        <div class="v dash-skeleton" id="t-proj">—</div>
-        <div class="gc-meter" aria-hidden="true"><i id="t-meter"></i></div>
-        <div class="s" id="t-proj-s">—</div>
-      </div>
     </div>
 
     <div class="gc-grid">
-      <div class="gc-card" id="card-categorias">
-        <header><h3>Onde foi o dinheiro</h3><p class="nota" id="nota-cat">Por categoria, na fatura escolhida.</p></header>
-        <div class="gc-chart" id="ch-cat" data-source="categorias"></div>
+      <div class="gc-card" id="card-ciclos">
+        <header><h3>Fatura a fatura</h3><p class="nota">O que sai do bolso em cada fatura (26 a 25). O contorno tracejado é a projeção da fatura atual. O vale fica de fora.</p>
+          <div class="gc-legenda"><span><i id="lg-cartao"></i>Cartão</span><span><i id="lg-conta"></i>Conta</span></div></header>
+        <div class="gc-chart" id="ch-ciclos" data-source="mensal projecao"></div>
       </div>
       <div class="gc-card" id="card-dias">
-        <header><h3>Dia a dia</h3><p class="nota">Gastos de cada dia; o dia mais caro fica em destaque.</p></header>
+        <header><h3>Dia a dia</h3><p class="nota">Cartão + conta em cada dia; o dia mais caro fica em destaque.</p></header>
         <div class="gc-chart" id="ch-dias" data-source="diario"></div>
       </div>
-      <div class="gc-card" id="card-ciclos">
-        <header><h3>Fatura a fatura</h3><p class="nota">Cada fatura vai do dia 26 ao dia 25. O contorno tracejado é a projeção da fatura atual.</p></header>
-        <div class="gc-chart" id="ch-ciclos" data-source="mensal projecao"></div>
+      <div class="gc-card" id="card-categorias">
+        <header><h3>Onde foi o dinheiro</h3><p class="nota" id="nota-cat">Por categoria, somando todas as formas de pagamento.</p></header>
+        <div class="gc-chart" id="ch-cat" data-source="categorias"></div>
       </div>
     </div>
   </section>
@@ -161,11 +177,11 @@
     <div class="gc-card gc-plano">
       <header>
         <h2>Planejamento futuro</h2>
-        <p class="nota">Quanto separar por fatura para cobrir os gastos do grupo no ritmo atual, com 10% de margem de segurança. Gastos fixos fora do grupo (aluguel, plano de saúde) ainda não entram.</p>
+        <p class="nota">Quanto separar por fatura para pagar o cartão e os gastos da conta, no ritmo atual, com 10% de margem. O vale fica de fora: ele já é coberto pelo saldo do vale. Gastos fixos fora do grupo (aluguel, plano de saúde) ainda não entram.</p>
       </header>
       <div class="gc-prov">
         <div>
-          <div class="gc-eyebrow">Separar por fatura</div>
+          <div class="gc-eyebrow">Separar por fatura (cartão + conta)</div>
           <div class="v dash-skeleton" id="p-prov" data-source="projecao" data-field="provisao_mensal">—</div>
         </div>
         <div class="nota">Média por fatura de <b id="p-media" data-source="projecao" data-field="media_mensal">—</b> <span id="p-base"></span> + 10%</div>
@@ -177,7 +193,7 @@
 
   <section class="gc-section" id="lancamentos">
     <div class="gc-card">
-      <header><h2>Lançamentos</h2><p class="nota">Tudo que foi lido do grupo na fatura escolhida. Itens <span class="pend">sem valor</span> não somam no total: mandem o valor no grupo para completar.</p></header>
+      <header><h2>Lançamentos</h2><p class="nota">Tudo que foi lançado na planilha para a fatura escolhida. Itens <span class="pend">sem valor</span> não somam: completem o valor na planilha.</p></header>
       <div class="gc-tools">
         <input class="gc-busca" id="busca" type="search" placeholder="Buscar gasto, categoria ou pessoa" aria-label="Buscar lançamentos">
         <span class="gc-cont" id="contagem"></span>
@@ -189,32 +205,75 @@
             <th data-field="descricao" data-col="descricao"><button type="button">Descrição</button></th>
             <th data-field="categoria" data-col="categoria"><button type="button">Categoria</button></th>
             <th class="num" data-field="valor" data-col="valor"><button type="button">Valor</button></th>
-            <th class="opt" data-field="pagamento" data-col="pagamento"><button type="button">Pagamento</button></th>
+            <th data-field="pagamento" data-col="pagamento"><button type="button">Pagamento</button></th>
             <th class="opt" data-field="autor" data-col="autor"><button type="button">Anotado por</button></th>
           </tr></thead>
           <tbody></tbody>
         </table>
       </div>
       <div class="gc-vazio" id="lanc-vazio" hidden>
-        <span id="lanc-vazio-t">Nenhum gasto anotado nesta fatura ainda. Mandem no grupo, um por linha:</span>
-        <code>45,90 zaffari #alimentacao (credito)</code>
+        <span id="lanc-vazio-t">Nenhum gasto lançado nesta fatura ainda.</span>
       </div>
     </div>
   </section>
 </div>
 
 <script>
+  dash.loader('despesas', {
+    description: 'Linhas da aba Lançamentos como tabela: data dd/mm/aaaa vira ISO, "R$ 1.234,56" vira número (vazio = sem valor) e o número da linha da planilha vira o id.',
+    fn: ({ answer }) => {
+      const resp = typeof answer === 'string' ? JSON.parse(answer) : answer;
+      if (resp && resp.error) throw new Error(String(resp.error.message || resp.error));
+      const valores = (resp && resp.values) || [];
+      const iso = (s) => {
+        const m = String(s || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : '';
+      };
+      const numero = (s) => {
+        const t = String(s ?? '').replace(/R\$/g, '').replace(/\s/g, '').replace(/\./g, '').replace(',', '.');
+        return t === '' || t === '-' || isNaN(Number(t)) ? null : Number(t);
+      };
+      const rows = [];
+      valores.forEach((r, i) => {
+        const [data, descricao, categoria, valor, pagamento, autor] = r;
+        if (!String(data || '').trim() && !String(descricao || '').trim()) return;
+        rows.push({
+          id: String(i + 2), data: iso(data), descricao: String(descricao || ''), categoria: String(categoria || 'Outros'),
+          valor: numero(valor), pagamento: String(pagamento || ''), autor: String(autor || ''),
+        });
+      });
+      return { columns: ['id', 'data', 'descricao', 'categoria', 'valor', 'pagamento', 'autor'], rows };
+    },
+  });
+
+  dash.calc('gastos', {
+    inputs: ['despesas', 'config'],
+    title: 'Gastos por fatura e forma',
+    description: 'Cada lançamento a partir de 26/10/2026 com a fatura (26 a 25) a que pertence e o grupo: Cartão (crédito), Vale (vale-alimentação), Conta (Pix, débito, dinheiro) ou Sem forma.',
+    fn: (despesas, config) => {
+      if (!config.length) return [];
+      const fecha = Number(config[0].dia_fechamento);
+      const inicio = String(config[0].inicio);
+      const grupo = (p) => (p === 'Crédito' ? 'Cartão' : p === 'Vale-alimentação' ? 'Vale' : ['Pix', 'Débito', 'Dinheiro'].includes(p) ? 'Conta' : 'Sem forma');
+      return despesas.filter((d) => d.data && d.data >= inicio).map((d) => {
+        const [a, m, dia] = d.data.split('-').map(Number);
+        const t = dia >= fecha ? Date.UTC(a, m - 1, fecha) : Date.UTC(a, m - 2, fecha);
+        return { ...d, ciclo: new Date(t).toISOString().slice(0, 10), grupo: grupo(d.pagamento) };
+      });
+    },
+  });
+
   dash.calc('ciclos', {
-    inputs: ['config', 'despesas'],
+    inputs: ['config', 'gastos'],
     title: 'Faturas',
     description: 'Cada fatura vai do dia de fechamento (26) até o dia 25 seguinte, do início combinado até a fatura do gasto mais recente.',
-    fn: (config, despesas) => {
+    fn: (config, gastos) => {
       if (!config.length) return [];
       const fecha = Number(config[0].dia_fechamento);
       const iso = (t) => new Date(t).toISOString().slice(0, 10);
       const parse = (s) => { const [a, m, d] = String(s).slice(0, 10).split('-').map(Number); return Date.UTC(a, m - 1, d); };
       const proximo = (t) => { const d = new Date(t); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, fecha); };
-      const ultimo = despesas.reduce((mx, d) => Math.max(mx, parse(d.ciclo)), parse(config[0].inicio));
+      const ultimo = gastos.reduce((mx, d) => Math.max(mx, parse(d.ciclo)), parse(config[0].inicio));
       const lista = [];
       for (let t = parse(config[0].inicio); t <= ultimo; t = proximo(t)) {
         const fim = proximo(t) - 86400000;
@@ -225,42 +284,47 @@
   });
 
   dash.calc('mensal', {
-    inputs: ['despesas', 'ciclos'],
-    title: 'Total por fatura',
-    description: 'Soma dos valores em cada fatura (26 a 25); itens sem valor contam só como pendentes, e os pagos com vale-alimentação também somam à parte.',
-    fn: (despesas, ciclos) => {
-      const por = new Map(ciclos.map((c) => [c.ciclo, { ciclo: c.ciclo, total: 0, lancamentos: 0, pendentes: 0, vale: 0 }]));
-      for (const d of despesas) {
-        const r = por.get(String(d.ciclo));
+    inputs: ['gastos', 'ciclos'],
+    title: 'Totais por fatura',
+    description: 'Em cada fatura: Cartão, Vale e Conta somados à parte, Cartão + conta (o que sai do bolso) e o gasto total da casa só como referência.',
+    fn: (gastos, ciclos) => {
+      const zero = (c) => ({ ciclo: c, cartao: 0, vale: 0, conta: 0, sem_forma: 0, bolso: 0, total: 0, lancamentos: 0, pendentes: 0 });
+      const por = new Map(ciclos.map((c) => [c.ciclo, zero(c.ciclo)]));
+      const campo = { 'Cartão': 'cartao', 'Vale': 'vale', 'Conta': 'conta', 'Sem forma': 'sem_forma' };
+      for (const d of gastos) {
+        const r = por.get(d.ciclo);
         if (!r) continue;
         if (d.valor === null || d.valor === '') { r.pendentes += 1; continue; }
+        r[campo[d.grupo]] += Number(d.valor);
         r.total += Number(d.valor);
         r.lancamentos += 1;
-        if (d.pagamento === 'Vale-alimentação') r.vale += Number(d.valor);
       }
       const r2 = (x) => Math.round(x * 100) / 100;
-      return [...por.values()].map((r) => ({ ...r, total: r2(r.total), vale: r2(r.vale) }));
+      return [...por.values()].map((r) => ({
+        ...r, cartao: r2(r.cartao), vale: r2(r.vale), conta: r2(r.conta), sem_forma: r2(r.sem_forma),
+        bolso: r2(r.cartao + r.conta), total: r2(r.total),
+      }));
     },
   });
 
   dash.calc('variacao', {
     inputs: ['mensal'],
-    title: 'Variação vs. fatura anterior',
-    description: 'Diferença do total de cada fatura para a fatura anterior.',
+    title: 'Cartão + conta vs. fatura anterior',
+    description: 'Diferença do que saiu do bolso (cartão + conta) em cada fatura para a fatura anterior.',
     fn: (mensal) => mensal.map((r, i) => ({
       ciclo: r.ciclo,
-      anterior: i > 0 ? mensal[i - 1].total : null,
-      delta: i > 0 ? Math.round((r.total - mensal[i - 1].total) * 100) / 100 : null,
+      anterior: i > 0 ? mensal[i - 1].bolso : null,
+      delta: i > 0 ? Math.round((r.bolso - mensal[i - 1].bolso) * 100) / 100 : null,
     })),
   });
 
   dash.calc('categorias', {
-    inputs: ['despesas'],
+    inputs: ['gastos'],
     title: 'Total por categoria e fatura',
-    description: 'Soma dos valores de cada categoria em cada fatura.',
-    fn: (despesas) => {
+    description: 'Soma dos valores de cada categoria em cada fatura, somando todas as formas de pagamento (referência de consumo).',
+    fn: (gastos) => {
       const soma = new Map();
-      for (const d of despesas) {
+      for (const d of gastos) {
         if (d.valor === null || d.valor === '') continue;
         const chave = d.ciclo + '|' + d.categoria;
         soma.set(chave, (soma.get(chave) || 0) + Number(d.valor));
@@ -273,14 +337,14 @@
   });
 
   dash.calc('diario', {
-    inputs: ['despesas'],
-    title: 'Total por dia',
-    description: 'Soma dos valores de cada dia, com a fatura a que o dia pertence.',
-    fn: (despesas) => {
+    inputs: ['gastos'],
+    title: 'Cartão + conta por dia',
+    description: 'Soma do cartão e da conta em cada dia, com a fatura a que o dia pertence. O vale fica de fora.',
+    fn: (gastos) => {
       const soma = new Map();
-      for (const d of despesas) {
-        if (d.valor === null || d.valor === '') continue;
-        const chave = String(d.data).slice(0, 10) + '|' + d.ciclo;
+      for (const d of gastos) {
+        if (d.valor === null || d.valor === '' || (d.grupo !== 'Cartão' && d.grupo !== 'Conta')) continue;
+        const chave = d.data + '|' + d.ciclo;
         soma.set(chave, (soma.get(chave) || 0) + Number(d.valor));
       }
       return [...soma].sort().map(([k, total]) => {
@@ -291,27 +355,27 @@
   });
 
   dash.calc('projecao', {
-    inputs: ['despesas', 'mensal', 'ciclos', 'config'],
-    title: 'Ritmo e provisão por fatura',
-    description: 'Na fatura mais recente: média por dia desde o dia 26 até o último gasto anotado e projeção até o dia 25. Média das até 3 faturas anteriores com gastos (ou a projeção, se ainda não houver) e essa média + 10%. Vale: valor mensal informado menos o gasto no vale.',
-    fn: (despesas, mensal, ciclos, config) => {
+    inputs: ['gastos', 'mensal', 'ciclos', 'config'],
+    title: 'Ritmo, provisão e saldo do vale',
+    description: 'Na fatura mais recente, com os dias do dia 26 até o último gasto lançado: média por dia e projeção até o dia 25 do cartão + conta; média das até 3 faturas anteriores (ou a projeção, se ainda não houver) e essa média + 10%. Vale: valor mensal menos o gasto no vale, e o saldo projetado no dia 25 no mesmo ritmo.',
+    fn: (gastos, mensal, ciclos, config) => {
       if (!ciclos.length) return [];
       const MARGEM = 0.1;
       const r2 = (x) => Math.round(x * 100) / 100;
       const parse = (s) => { const [a, m, d] = String(s).slice(0, 10).split('-').map(Number); return Date.UTC(a, m - 1, d); };
       const c = ciclos[ciclos.length - 1];
       const atual = mensal.find((r) => r.ciclo === c.ciclo);
-      const datas = despesas.filter((d) => d.ciclo === c.ciclo).map((d) => parse(d.data));
+      const datas = gastos.filter((d) => d.ciclo === c.ciclo).map((d) => parse(d.data));
       const dias = datas.length ? Math.round((Math.max(...datas) - parse(c.ciclo)) / 86400000) + 1 : 0;
-      const gasto = atual ? atual.total : 0;
+      const restantes = c.dias - dias;
+      const gasto = atual ? atual.bolso : 0;
       const media_diaria = dias ? gasto / dias : 0;
-      const projecao_mes = gasto + media_diaria * (c.dias - dias);
-      const anteriores = mensal.filter((r) => r.ciclo < c.ciclo && r.total > 0).slice(-3);
-      const media_mensal = anteriores.length
-        ? anteriores.reduce((s, r) => s + r.total, 0) / anteriores.length
-        : projecao_mes;
+      const projecao_mes = gasto + media_diaria * restantes;
+      const anteriores = mensal.filter((r) => r.ciclo < c.ciclo && r.bolso > 0).slice(-3);
+      const media_mensal = anteriores.length ? anteriores.reduce((s, r) => s + r.bolso, 0) / anteriores.length : projecao_mes;
       const vale_mensal = config.length && config[0].vale_mensal !== null && config[0].vale_mensal !== '' ? Number(config[0].vale_mensal) : null;
       const vale_gasto = atual ? atual.vale : 0;
+      const vale_media = dias ? vale_gasto / dias : 0;
       return [{
         ciclo: c.ciclo, fim: c.fim, gasto, dias, dias_no_ciclo: c.dias,
         media_diaria: r2(media_diaria),
@@ -322,14 +386,15 @@
         vale_mensal,
         vale_gasto,
         vale_saldo: vale_mensal === null ? null : r2(vale_mensal - vale_gasto),
+        vale_saldo_projetado: vale_mensal === null ? null : r2(vale_mensal - (vale_gasto + vale_media * restantes)),
       }];
     },
   });
 
   dash.calc('horizontes', {
     inputs: ['projecao'],
-    title: 'Reserva por horizonte',
-    description: 'Média por fatura e provisão (média + 10%) multiplicadas por 1, 3, 6 e 12 faturas.',
+    title: 'Reserva por horizonte (cartão + conta)',
+    description: 'Média por fatura de cartão + conta e provisão (média + 10%) multiplicadas por 1, 3, 6 e 12 faturas.',
     fn: (projecao) => projecao.length
       ? [1, 3, 6, 12].map((meses) => ({
           meses,
@@ -343,6 +408,9 @@
   raiz.style.setProperty('--gc-c0', dash.colors[0]);
   document.querySelectorAll('.gc-ico').forEach((el) => el.style.setProperty('--ic', dash.colors[Number(el.dataset.ic)]));
   document.getElementById('t-vale-meter').style.setProperty('--ic', dash.colors[4]);
+  const COR_GRUPO = { 'Cartão': dash.colors[0], 'Conta': dash.colors[1], 'Vale': dash.colors[4], 'Sem forma': 'var(--cds-chart-muted)' };
+  document.getElementById('lg-cartao').style.setProperty('--lc', COR_GRUPO['Cartão']);
+  document.getElementById('lg-conta').style.setProperty('--lc', COR_GRUPO['Conta']);
 
   const CATEGORIAS = ['Alimentação', 'Casa/contas', 'Transporte', 'Saúde', 'Lazer', 'Outros'];
   const corCat = (c) => dash.colors[Math.max(0, CATEGORIAS.indexOf(c)) % dash.colors.length];
@@ -381,13 +449,16 @@
     let tip = box.querySelector('.gc-tip');
     if (!tip) { tip = document.createElement('div'); tip.className = 'gc-tip'; tip.hidden = true; box.appendChild(tip); }
     return {
-      show(event, titulo, linha, cor) {
+      show(event, titulo, linhas) {
         tip.replaceChildren();
         const t = document.createElement('div'); t.className = 't'; t.textContent = titulo;
-        const l = document.createElement('div');
-        if (cor) { const sw = document.createElement('span'); sw.className = 'sw'; sw.style.background = cor; l.appendChild(sw); }
-        l.append(linha);
-        tip.append(t, l);
+        tip.append(t);
+        for (const [texto, cor] of linhas) {
+          const l = document.createElement('div');
+          if (cor) { const sw = document.createElement('span'); sw.className = 'sw'; sw.style.background = cor; l.appendChild(sw); }
+          l.append(texto);
+          tip.append(l);
+        }
         tip.hidden = false;
         const [x, y] = d3.pointer(event, box);
         const w = tip.offsetWidth;
@@ -415,11 +486,12 @@
     return w;
   };
 
-  // Barras verticais: itens [{rotulo, valor, contorno?, titulo, linha, destaque?}]
+  // Barras verticais empilhadas: itens [{rotulo, partes: [[valor, cor]], contorno?, titulo, linhas, destaque?}]
   function barras(box, itens, { valoresNoTopo = false } = {}) {
     const W = box.clientWidth || 320, H = 220, base = H - 24;
     const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
-    const maxV = d3.max(itens, (d) => Math.max(d.valor, d.contorno || 0)) || 1;
+    const soma = (d) => d3.sum(d.partes, (p) => p[0]);
+    const maxV = d3.max(itens, (d) => Math.max(soma(d), d.contorno || 0)) || 1;
     const y = d3.scaleLinear([0, maxV * (valoresNoTopo ? 1.15 : 1)], [base, 12]).nice();
     const ticks = y.ticks(4);
     const ml = largura(svg, ticks.map(brlCurto)) + 10;
@@ -440,24 +512,31 @@
       }
     });
     const tip = tooltip(box);
-    const g = svg.selectAll('g.b').data(itens).join('g').attr('class', 'b');
     const bx = (d) => x(d.rotulo) + (x.bandwidth() - bw) / 2;
-    g.filter((d) => d.contorno).append('rect')
-      .attr('x', bx).attr('width', bw).attr('y', (d) => y(d.contorno)).attr('height', (d) => base - y(d.contorno)).attr('rx', 4)
-      .attr('fill', 'none').attr('stroke', dash.colors[0]).attr('stroke-dasharray', '4 3');
-    g.append('rect').attr('class', 'bar bar-v')
-      .attr('x', bx).attr('width', bw).attr('y', (d) => y(d.valor)).attr('height', (d) => Math.max(0, base - y(d.valor))).attr('rx', 4)
-      .style('animation-delay', (d, i) => i * 30 + 'ms')
-      .attr('fill', (d) => (d.destaque || itens.length < 3 ? dash.colors[0] : 'var(--cds-chart-muted)'));
-    if (valoresNoTopo) {
-      g.filter((d) => d.valor > 0).append('text')
-        .attr('x', (d) => x(d.rotulo) + x.bandwidth() / 2).attr('y', (d) => y(d.valor) - 6).attr('text-anchor', 'middle')
-        .attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('font-variant-numeric', 'tabular-nums')
-        .text((d) => brlCurto(d.valor));
-    }
-    g.append('rect').attr('x', (d) => x(d.rotulo)).attr('width', x.bandwidth()).attr('y', 0).attr('height', base).attr('fill', 'transparent')
-      .on('mousemove', (event, d) => tip.show(event, d.titulo, d.linha))
-      .on('mouseleave', () => tip.hide());
+    itens.forEach((d, i) => {
+      if (d.contorno) {
+        svg.append('rect').attr('x', bx(d)).attr('width', bw).attr('y', y(d.contorno)).attr('height', base - y(d.contorno)).attr('rx', 4)
+          .attr('fill', 'none').attr('stroke', dash.colors[0]).attr('stroke-dasharray', '4 3');
+      }
+      let acum = 0;
+      const partes = d.partes.filter((p) => p[0] > 0);
+      partes.forEach(([v, cor], j) => {
+        const topo = j === partes.length - 1;
+        svg.append('rect').attr('class', 'bar bar-v')
+          .attr('x', bx(d)).attr('width', bw).attr('y', y(acum + v)).attr('height', Math.max(0, y(acum) - y(acum + v)))
+          .attr('rx', topo ? 4 : 0).style('animation-delay', i * 30 + 'ms')
+          .attr('fill', cor || (d.destaque || itens.length < 3 ? dash.colors[0] : 'var(--cds-chart-muted)'));
+        acum += v;
+      });
+      if (valoresNoTopo && acum > 0) {
+        svg.append('text').attr('x', x(d.rotulo) + x.bandwidth() / 2).attr('y', y(acum) - 6).attr('text-anchor', 'middle')
+          .attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('font-variant-numeric', 'tabular-nums')
+          .text(brlCurto(acum));
+      }
+      svg.append('rect').attr('x', x(d.rotulo)).attr('width', x.bandwidth()).attr('y', 0).attr('height', base).attr('fill', 'transparent')
+        .on('mousemove', (event) => tip.show(event, d.titulo, d.linhas))
+        .on('mouseleave', () => tip.hide());
+    });
   }
 
   // Barras horizontais por categoria, cada uma na cor da categoria
@@ -475,7 +554,7 @@
       svg.append('rect').attr('class', 'bar bar-h').attr('x', ml).attr('y', yy + 2).attr('width', Math.max(3, x(d.valor) - ml)).attr('height', 22).attr('rx', 4)
         .style('animation-delay', i * 60 + 'ms')
         .attr('fill', corCat(d.rotulo))
-        .on('mousemove', (event) => tip.show(event, d.rotulo, `${brl.format(d.valor)} · ${pct.format(d.valor / total)} da fatura`, corCat(d.rotulo)))
+        .on('mousemove', (event) => tip.show(event, d.rotulo, [[`${brl.format(d.valor)} · ${pct.format(d.valor / total)} do total da casa`, corCat(d.rotulo)]]))
         .on('mouseleave', () => tip.hide());
       textoCap(svg).attr('x', W - mr + 8).attr('y', yy + 13).attr('dy', '0.32em').attr('fill', 'var(--color-fg-muted)')
         .style('font-variant-numeric', 'tabular-nums').text(brl.format(d.valor));
@@ -502,10 +581,10 @@
       if (th.dataset.col === ordem.col) th.setAttribute('aria-sort', ordem.dir > 0 ? 'ascending' : 'descending');
       else th.removeAttribute('aria-sort');
     });
-    const desp = dash.data('despesas');
+    const g = dash.data('gastos');
     const tb = document.querySelector('#tb-lanc tbody');
     const q = busca.value.trim().toLowerCase();
-    const doCiclo = desp.status === 'ok' ? desp.data.filter((d) => String(d.ciclo) === cicloAtual) : [];
+    const doCiclo = g.status === 'ok' ? g.data.filter((d) => d.ciclo === cicloAtual) : [];
     const linhas = doCiclo
       .filter((d) => !q || [d.descricao, d.categoria, d.autor, d.pagamento].some((s) => String(s || '').toLowerCase().includes(q)))
       .sort((a, b) => {
@@ -527,14 +606,17 @@
       const cat = document.createElement('span'); cat.className = 'cat'; cat.style.setProperty('--cc', corCat(d.categoria)); cat.textContent = d.categoria;
       td().appendChild(cat);
       const tv = td(sem ? 'num pend' : 'num'); tv.textContent = sem ? 'sem valor' : brl.format(Number(d.valor));
-      td('opt').textContent = d.pagamento || '—';
+      const pg = document.createElement('span'); pg.className = 'pg'; pg.style.setProperty('--pc', COR_GRUPO[d.grupo]);
+      pg.textContent = d.pagamento || 'escolher na planilha';
+      if (!d.pagamento) pg.classList.add('pend');
+      td().appendChild(pg);
       td('opt').textContent = d.autor;
       return tr;
     }));
-    const vazio = desp.status === 'ok' && !doCiclo.length;
+    const vazio = g.status === 'ok' && !doCiclo.length;
     document.getElementById('tb-lanc').hidden = vazio;
     document.getElementById('lanc-vazio').hidden = !vazio;
-    document.getElementById('lanc-vazio-t').textContent = `Nenhum gasto anotado na fatura ${rotuloAtual} ainda. Mandem no grupo, um por linha:`;
+    document.getElementById('lanc-vazio-t').textContent = `Nenhum gasto lançado na fatura ${rotuloAtual} ainda. Lancem na aba Lançamentos da planilha.`;
     document.getElementById('contagem').textContent = doCiclo.length
       ? (linhas.length === doCiclo.length ? `${doCiclo.length} lançamentos` : `${linhas.length} de ${doCiclo.length} lançamentos`)
       : '';
@@ -544,7 +626,7 @@
     const cic = dash.data('ciclos');
     const ciclos = cic.status === 'ok' ? cic.data : [];
     const ultimo = ciclos.length ? ciclos[ciclos.length - 1] : null;
-    let c = ciclos.find((x) => x.ciclo === dash.params().ciclo) || ultimo;
+    const c = ciclos.find((x) => x.ciclo === dash.params().ciclo) || ultimo;
     cicloAtual = c ? c.ciclo : null;
     rotuloAtual = c ? nomeCiclo(c) : '';
     if (ciclos.length) animarUmaVez();
@@ -554,42 +636,42 @@
       if (c) sel.value = c.ciclo;
     }
 
-    // Abertura
+    // Abertura: fatura do cartão em destaque; conta, vale e total da casa à parte
     const mensal = dash.data('mensal');
     const linha = mensal.status === 'ok' ? mensal.data.find((r) => r.ciclo === cicloAtual) : null;
+    const where = 'ciclo=' + cicloAtual;
     if (linha) {
-      document.getElementById('h-ciclo').textContent = 'Fatura de ' + rotuloAtual;
-      mark(set('#h-total', brl.format(linha.total)), 'mensal', 'total', 'ciclo=' + cicloAtual);
-      const cats = dash.data('categorias');
-      const top = cats.status === 'ok' ? cats.data.filter((r) => r.ciclo === cicloAtual).sort((a, b) => b.total - a.total)[0] : null;
+      document.getElementById('h-ciclo').textContent = `Fatura do cartão · ${rotuloAtual} · a pagar no mês seguinte`;
+      mark(set('#h-total', brl.format(linha.cartao)), 'mensal', 'cartao', where);
       set('#h-resumo', linha.lancamentos === 0 && linha.pendentes === 0
-        ? 'Nenhum gasto anotado ainda nesta fatura. Os totais aparecem assim que vocês mandarem os primeiros no grupo.'
-        : `${linha.lancamentos} gastos anotados` +
-          (top ? `; a maior parte em ${top.categoria.toLowerCase()} (${pct.format(top.total / linha.total)})` : '') +
-          (linha.pendentes ? `. ${linha.pendentes} ${linha.pendentes > 1 ? 'itens ainda estão' : 'item ainda está'} sem valor.` : '.'));
-      mark(set('#t-n', String(linha.lancamentos)), 'mensal', 'lancamentos', 'ciclo=' + cicloAtual);
+        ? 'Nenhum gasto lançado ainda nesta fatura. Os totais aparecem assim que vocês lançarem na planilha.'
+        : `Só compras no crédito. Junto com a conta, saíram ${brl.format(linha.bolso)} do bolso nesta fatura.` +
+          (linha.sem_forma ? ` ${brl.format(linha.sem_forma)} estão sem forma de pagamento na planilha.` : ''));
+      mark(set('#h-conta', brl.format(linha.conta)), 'mensal', 'conta', where);
+      mark(set('#h-vale', brl.format(linha.vale)), 'mensal', 'vale', where);
+      mark(set('#h-geral', brl.format(linha.total)), 'mensal', 'total', where);
+      mark(set('#t-n', String(linha.lancamentos)), 'mensal', 'lancamentos', where);
       const tPend = set('#t-pend', linha.pendentes ? `${linha.pendentes} sem valor` : 'Todos com valor');
       tPend.className = linha.pendentes ? 's pend' : 's';
-      if (linha.pendentes) mark(tPend, 'mensal', 'pendentes', 'ciclo=' + cicloAtual); else unmark(tPend);
-      mark(set('#t-vale', brl.format(linha.vale)), 'mensal', 'vale', 'ciclo=' + cicloAtual);
+      if (linha.pendentes) mark(tPend, 'mensal', 'pendentes', where); else unmark(tPend);
     } else if (!pronto('mensal')) {
-      for (const s of ['#h-total', '#h-resumo', '#t-n', '#t-vale']) document.querySelector(s).classList.add('dash-skeleton');
+      for (const s of ['#h-total', '#h-resumo', '#t-n']) document.querySelector(s).classList.add('dash-skeleton');
     }
 
     const varr = dash.data('variacao');
     const v = varr.status === 'ok' ? varr.data.find((r) => r.ciclo === cicloAtual) : null;
     const tDelta = document.getElementById('t-delta');
     if (v && v.delta !== null) {
-      mark(set('#t-delta', (v.delta > 0 ? '+' : '') + brl.format(v.delta)), 'variacao', 'delta', 'ciclo=' + cicloAtual);
+      mark(set('#t-delta', (v.delta > 0 ? '+' : '') + brl.format(v.delta)), 'variacao', 'delta', where);
       tDelta.style.color = v.delta > 0 ? 'var(--color-bad)' : 'var(--color-ok)';
-      set('#t-delta-s', v.delta > 0 ? 'Gastaram mais que na fatura anterior' : 'Gastaram menos que na fatura anterior');
+      set('#t-delta-s', v.delta > 0 ? 'Saiu mais do bolso que na fatura anterior' : 'Saiu menos do bolso que na fatura anterior');
     } else if (v) {
       unmark(tDelta); tDelta.style.color = '';
       set('#t-delta', '—');
       set('#t-delta-s', 'Primeira fatura anotada');
     }
 
-    // Ritmo da fatura mais recente e vale
+    // Ritmo (cartão + conta) e saldo do vale da fatura mais recente
     const proj = dash.data('projecao');
     const p = proj.status === 'ok' && proj.data.length ? proj.data[0] : null;
     if (p) {
@@ -601,21 +683,40 @@
       const tProj = set('#t-proj', temGasto ? brl.format(p.projecao_mes) : '—');
       if (temGasto) mark(tProj, 'projecao', 'projecao_mes'); else unmark(tProj);
       document.getElementById('t-meter').style.width = temGasto && p.projecao_mes ? Math.min(100, (p.gasto / p.projecao_mes) * 100) + '%' : '0';
-      set('#t-proj-s', temGasto ? `${pct.format(p.gasto / p.projecao_mes)} já gasto · fecha em ${diaMes(p.fim)}` : 'Aparece com os primeiros gastos');
+      set('#t-proj-s', temGasto ? `${pct.format(p.projecao_mes ? p.gasto / p.projecao_mes : 0)} já gasto · fecha em ${diaMes(p.fim)}` : 'Aparece com os primeiros gastos');
 
+      const tVale = document.getElementById('t-vale');
       const tValeS = document.getElementById('t-vale-s');
+      const tValeP = document.getElementById('t-vale-proj');
       const meter = document.getElementById('t-vale-meter');
       if (ehAtual && p.vale_mensal !== null) {
-        tValeS.textContent = `Saldo ${brl.format(p.vale_saldo)} de ${brl.format(p.vale_mensal)}`;
-        mark(tValeS, 'projecao', 'vale_saldo');
+        mark(set('#t-vale', brl.format(p.vale_saldo)), 'projecao', 'vale_saldo');
+        tVale.style.color = p.vale_saldo < 0 ? 'var(--color-bad)' : '';
         meter.hidden = false;
         document.getElementById('t-vale-barra').style.width = Math.min(100, (p.vale_gasto / p.vale_mensal) * 100) + '%';
-        tValeS.style.color = p.vale_saldo < 0 ? 'var(--color-bad)' : '';
+        tValeS.textContent = `Gasto ${brl.format(p.vale_gasto)} de ${brl.format(p.vale_mensal)}`;
+        mark(tValeS, 'projecao', 'vale_gasto');
+        if (p.dias > 0) {
+          const falta = p.vale_saldo_projetado < 0;
+          tValeP.textContent = falta
+            ? `No ritmo atual o vale acaba antes do dia 25: faltam cerca de ${brl.format(-p.vale_saldo_projetado)}, que vão cair no cartão ou na conta.`
+            : `Saldo projetado no dia 25: ${brl.format(p.vale_saldo_projetado)}`;
+          tValeP.className = falta ? 's alerta' : 's';
+          mark(tValeP, 'projecao', 'vale_saldo_projetado');
+        } else {
+          tValeP.textContent = 'Projeção aparece com os primeiros gastos';
+          tValeP.className = 's';
+          unmark(tValeP);
+        }
       } else {
-        unmark(tValeS);
+        const lv = linha ? linha.vale : 0;
+        set('#t-vale', ehAtual ? '—' : brl.format(lv));
+        tVale.style.color = '';
+        unmark(tVale);
         meter.hidden = true;
-        tValeS.style.color = '';
-        tValeS.textContent = ehAtual ? 'Gasto com (banri) nesta fatura. Informe o valor do vale para ver o saldo.' : 'Gasto com (banri) nesta fatura';
+        unmark(tValeS); unmark(tValeP);
+        tValeS.textContent = ehAtual ? 'Informe o valor mensal do vale para ver o saldo.' : 'Gasto no vale nesta fatura';
+        tValeP.textContent = '';
       }
 
       const temBase = p.media_mensal > 0;
@@ -627,49 +728,54 @@
       const aviso = document.getElementById('p-aviso');
       aviso.hidden = temBase && p.meses_base >= 3;
       aviso.textContent = !temBase
-        ? 'O planejamento aparece com os primeiros gastos da fatura.'
+        ? 'O planejamento aparece com os primeiros gastos no cartão ou na conta.'
         : p.meses_base === 0
           ? `Estimativa ainda fraca: são só ${p.dias} dias de anotações. Ela fica mais confiável a cada fatura completa.`
           : `Baseada em ${p.meses_base} ${p.meses_base > 1 ? 'faturas' : 'fatura'}; com 3 faturas completas a média fica mais estável.`;
       document.getElementById('tb-horiz').hidden = !temBase;
     }
 
-    // Categorias
+    // Fatura a fatura: cartão + conta empilhados
+    const bCiclos = document.getElementById('ch-ciclos');
+    const linhasCiclo = mensal.status === 'ok' ? mensal.data : [];
+    const vazioCiclos = !linhasCiclo.some((r) => r.bolso > 0);
+    if (!semDados(bCiclos, ['mensal', 'projecao'], vazioCiclos ? 'Nenhum gasto no cartão ou na conta ainda.' : null)) {
+      barras(bCiclos, linhasCiclo.map((r) => {
+        const x = ciclos.find((k) => k.ciclo === r.ciclo);
+        const comProj = p && r.ciclo === p.ciclo && p.dias > 0;
+        return {
+          rotulo: diaMes(r.ciclo), destaque: r.ciclo === cicloAtual,
+          partes: [[r.cartao, COR_GRUPO['Cartão']], [r.conta, COR_GRUPO['Conta']]],
+          contorno: comProj ? p.projecao_mes : 0,
+          titulo: 'Fatura de ' + (x ? nomeCiclo(x) : diaMes(r.ciclo)),
+          linhas: [[`Cartão ${brl.format(r.cartao)}`, COR_GRUPO['Cartão']], [`Conta ${brl.format(r.conta)}`, COR_GRUPO['Conta']]]
+            .concat(comProj ? [[`Projeção ${brl.format(p.projecao_mes)}`]] : []),
+        };
+      }));
+    }
+
+    // Dia a dia (cartão + conta)
+    const bDias = document.getElementById('ch-dias');
+    const dia = dash.data('diario');
+    const itensDia = dia.status === 'ok' ? dia.data.filter((r) => r.ciclo === cicloAtual) : [];
+    if (!semDados(bDias, ['diario'], itensDia.length ? null : 'Nenhum gasto no cartão ou na conta nesta fatura ainda.')) {
+      const maior = d3.max(itensDia, (r) => r.total);
+      barras(bDias, itensDia.map((r) => ({
+        rotulo: diaMes(r.dia), destaque: r.total === maior, partes: [[r.total, null]],
+        titulo: `${diaSemana(r.dia)}, ${diaMes(r.dia)}`, linhas: [[brl.format(r.total)]],
+      })), { valoresNoTopo: true });
+    }
+
+    // Categorias (todas as formas, referência)
     const bCat = document.getElementById('ch-cat');
     const cats = dash.data('categorias');
     const itensCat = cats.status === 'ok'
       ? cats.data.filter((r) => r.ciclo === cicloAtual).sort((a, b) => b.total - a.total).map((r) => ({ rotulo: r.categoria, valor: r.total }))
       : [];
     if (!semDados(bCat, ['categorias'], itensCat.length ? null : 'Nenhum gasto com valor nesta fatura ainda.')) barrasH(bCat, itensCat, d3.sum(itensCat, (d) => d.valor));
-    document.getElementById('nota-cat').textContent = c ? `Por categoria, na fatura de ${rotuloAtual}.` : 'Por categoria, na fatura escolhida.';
-
-    // Dia a dia: só os dias com gasto, o mais caro em destaque
-    const bDias = document.getElementById('ch-dias');
-    const dia = dash.data('diario');
-    const itensDia = dia.status === 'ok' ? dia.data.filter((r) => r.ciclo === cicloAtual) : [];
-    if (!semDados(bDias, ['diario'], itensDia.length ? null : 'Nenhum gasto com valor nesta fatura ainda.')) {
-      const maior = d3.max(itensDia, (r) => r.total);
-      barras(bDias, itensDia.map((r) => ({
-        rotulo: diaMes(r.dia), valor: r.total, destaque: r.total === maior,
-        titulo: `${diaSemana(r.dia)}, ${diaMes(r.dia)}`, linha: brl.format(r.total),
-      })), { valoresNoTopo: true });
-    }
-
-    // Fatura a fatura
-    const bCiclos = document.getElementById('ch-ciclos');
-    const linhasCiclo = mensal.status === 'ok' ? mensal.data : [];
-    const vazio = !linhasCiclo.some((r) => r.total > 0);
-    if (!semDados(bCiclos, ['mensal', 'projecao'], vazio ? 'Nenhum gasto com valor ainda.' : null)) {
-      barras(bCiclos, linhasCiclo.map((r) => {
-        const x = ciclos.find((k) => k.ciclo === r.ciclo);
-        return {
-          rotulo: diaMes(r.ciclo), valor: r.total, destaque: r.ciclo === cicloAtual,
-          contorno: p && r.ciclo === p.ciclo && p.dias > 0 ? p.projecao_mes : 0,
-          titulo: 'Fatura de ' + (x ? nomeCiclo(x) : diaMes(r.ciclo)),
-          linha: brl.format(r.total) + (p && r.ciclo === p.ciclo && p.dias > 0 ? ` · projeção ${brl.format(p.projecao_mes)}` : ''),
-        };
-      }));
-    }
+    document.getElementById('nota-cat').textContent = c
+      ? `Por categoria na fatura de ${rotuloAtual}, somando cartão, vale e conta (só como referência de consumo).`
+      : 'Por categoria, somando todas as formas de pagamento.';
 
     // Planejamento por horizonte
     const hz = dash.data('horizontes');

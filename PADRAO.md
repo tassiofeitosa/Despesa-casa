@@ -12,7 +12,7 @@ VALOR descrição #categoria (pagamento)
 - **(pagamento)** (opcional): `(credito)`, `(debito)`, `(pix)`, `(dinheiro)` ou `(banri)` para compras no **vale-alimentação**.
 - **Outro dia**: escreva o dia da semana numa linha antes (`Sábado`), ou mande no próprio dia.
 
-O "mês" de gastos é a **fatura dos cartões**: vai do dia 26 ao dia 25 do mês seguinte (as anotações começam em 26/10/2026). Gastos de Pix, débito, dinheiro e vale entram na mesma fatura pela data da compra.
+O "mês" de gastos é a **fatura dos cartões**: vai do dia 26 ao dia 25 do mês seguinte (as anotações começam em 26/10/2026). Gastos de Pix, débito, dinheiro e vale entram no mesmo período pela data da compra, mas cada forma é somada à parte: **crédito** vai para a fatura do cartão, **vale** sai do saldo do vale e **Pix/débito/dinheiro** saem da conta. Por isso a forma de pagamento é importante em todo gasto.
 
 ## Exemplos
 
