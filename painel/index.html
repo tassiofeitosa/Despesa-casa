@@ -92,25 +92,28 @@
     .gc.anima .bar-v { transform-box: fill-box; transform-origin: bottom; animation: gc-cresce 600ms var(--cds-ease-out) backwards; }
     .gc.anima .bar-h { transform-box: fill-box; transform-origin: left; animation: gc-estica 600ms var(--cds-ease-out) backwards; }
   }
+  .gc-vazio { display: grid; gap: var(--cds-gap-sm); justify-items: start; padding: var(--cds-pad-md) 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+  .gc-vazio code { font-size: var(--cds-font-size-body); color: var(--color-fg); background: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); }
+  .gc-meter.vale > i { background: var(--ic); }
   @media (prefers-reduced-motion: reduce) { .gc-meter > i { transition: none; } }
 </style>
 
 <div class="gc">
   <section class="gc-hero" id="topo">
     <div>
-      <div class="gc-eyebrow" id="h-mes">Gastos Casa</div>
+      <div class="gc-eyebrow" id="h-ciclo">Gastos Casa</div>
       <div class="gc-big dash-skeleton" id="h-total">—</div>
       <p class="gc-resumo dash-skeleton" id="h-resumo">—</p>
     </div>
-    <label class="gc-mes" for="mes">Mês
-      <select id="mes" data-source="mensal"></select>
+    <label class="gc-mes" for="ciclo">Fatura
+      <select id="ciclo" data-source="ciclos"></select>
     </label>
   </section>
 
-  <section class="gc-section" id="mes-atual">
+  <section class="gc-section" id="fatura">
     <div class="gc-tiles">
       <div class="gc-tile">
-        <div class="k"><span class="gc-ico" data-ic="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg></span>Vs. mês anterior</div>
+        <div class="k"><span class="gc-ico" data-ic="0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg></span>Vs. fatura anterior</div>
         <div class="v dash-skeleton" id="t-delta">—</div>
         <div class="s" id="t-delta-s">—</div>
       </div>
@@ -120,12 +123,18 @@
         <div class="s" id="t-pend">—</div>
       </div>
       <div class="gc-tile">
+        <div class="k"><span class="gc-ico" data-ic="4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg></span>Vale-alimentação</div>
+        <div class="v dash-skeleton" id="t-vale">—</div>
+        <div class="gc-meter vale" id="t-vale-meter" aria-hidden="true" hidden><i id="t-vale-barra"></i></div>
+        <div class="s" id="t-vale-s">—</div>
+      </div>
+      <div class="gc-tile">
         <div class="k"><span class="gc-ico" data-ic="2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>Média por dia</div>
         <div class="v dash-skeleton" id="t-media">—</div>
         <div class="s" id="t-dias">—</div>
       </div>
       <div class="gc-tile">
-        <div class="k"><span class="gc-ico" data-ic="3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Projeção do mês</div>
+        <div class="k"><span class="gc-ico" data-ic="3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Projeção da fatura</div>
         <div class="v dash-skeleton" id="t-proj">—</div>
         <div class="gc-meter" aria-hidden="true"><i id="t-meter"></i></div>
         <div class="s" id="t-proj-s">—</div>
@@ -134,16 +143,16 @@
 
     <div class="gc-grid">
       <div class="gc-card" id="card-categorias">
-        <header><h3>Onde foi o dinheiro</h3><p class="nota" id="nota-cat">Por categoria, no mês escolhido.</p></header>
+        <header><h3>Onde foi o dinheiro</h3><p class="nota" id="nota-cat">Por categoria, na fatura escolhida.</p></header>
         <div class="gc-chart" id="ch-cat" data-source="categorias"></div>
       </div>
       <div class="gc-card" id="card-dias">
         <header><h3>Dia a dia</h3><p class="nota">Gastos de cada dia; o dia mais caro fica em destaque.</p></header>
         <div class="gc-chart" id="ch-dias" data-source="diario"></div>
       </div>
-      <div class="gc-card" id="card-meses">
-        <header><h3>Mês a mês</h3><p class="nota">Barra cheia é o gasto anotado; o contorno tracejado é a projeção do mês atual.</p></header>
-        <div class="gc-chart" id="ch-meses" data-source="mensal projecao"></div>
+      <div class="gc-card" id="card-ciclos">
+        <header><h3>Fatura a fatura</h3><p class="nota">Cada fatura vai do dia 26 ao dia 25. O contorno tracejado é a projeção da fatura atual.</p></header>
+        <div class="gc-chart" id="ch-ciclos" data-source="mensal projecao"></div>
       </div>
     </div>
   </section>
@@ -152,14 +161,14 @@
     <div class="gc-card gc-plano">
       <header>
         <h2>Planejamento futuro</h2>
-        <p class="nota">Quanto separar por mês para cobrir os gastos do grupo no ritmo atual, com 10% de margem de segurança. Gastos fixos fora do grupo (aluguel, plano de saúde) ainda não entram.</p>
+        <p class="nota">Quanto separar por fatura para cobrir os gastos do grupo no ritmo atual, com 10% de margem de segurança. Gastos fixos fora do grupo (aluguel, plano de saúde) ainda não entram.</p>
       </header>
       <div class="gc-prov">
         <div>
-          <div class="gc-eyebrow">Separar por mês</div>
+          <div class="gc-eyebrow">Separar por fatura</div>
           <div class="v dash-skeleton" id="p-prov" data-source="projecao" data-field="provisao_mensal">—</div>
         </div>
-        <div class="nota">Média mensal de <b id="p-media" data-source="projecao" data-field="media_mensal">—</b> <span id="p-base"></span> + 10%</div>
+        <div class="nota">Média por fatura de <b id="p-media" data-source="projecao" data-field="media_mensal">—</b> <span id="p-base"></span> + 10%</div>
       </div>
       <div class="gc-steps" id="tb-horiz" data-source="horizontes"></div>
       <p class="aviso" id="p-aviso" hidden></p>
@@ -168,7 +177,7 @@
 
   <section class="gc-section" id="lancamentos">
     <div class="gc-card">
-      <header><h2>Lançamentos</h2><p class="nota">Tudo que foi lido do grupo no mês escolhido. Itens <span class="pend">sem valor</span> não somam no total: mandem o valor no grupo para completar.</p></header>
+      <header><h2>Lançamentos</h2><p class="nota">Tudo que foi lido do grupo na fatura escolhida. Itens <span class="pend">sem valor</span> não somam no total: mandem o valor no grupo para completar.</p></header>
       <div class="gc-tools">
         <input class="gc-busca" id="busca" type="search" placeholder="Buscar gasto, categoria ou pessoa" aria-label="Buscar lançamentos">
         <span class="gc-cont" id="contagem"></span>
@@ -186,36 +195,60 @@
           <tbody></tbody>
         </table>
       </div>
+      <div class="gc-vazio" id="lanc-vazio" hidden>
+        <span id="lanc-vazio-t">Nenhum gasto anotado nesta fatura ainda. Mandem no grupo, um por linha:</span>
+        <code>45,90 zaffari #alimentacao (credito)</code>
+      </div>
     </div>
   </section>
 </div>
 
 <script>
-  dash.calc('mensal', {
-    inputs: ['despesas'],
-    title: 'Total por mês',
-    description: 'Soma dos valores por mês; itens sem valor contam só como pendentes.',
-    fn: (despesas) => {
-      const meses = new Map();
-      for (const d of despesas) {
-        const mes = String(d.data).slice(0, 7);
-        const r = meses.get(mes) || { mes, total: 0, lancamentos: 0, pendentes: 0 };
-        if (d.valor === null || d.valor === '') r.pendentes += 1;
-        else { r.total += Number(d.valor); r.lancamentos += 1; }
-        meses.set(mes, r);
+  dash.calc('ciclos', {
+    inputs: ['config', 'despesas'],
+    title: 'Faturas',
+    description: 'Cada fatura vai do dia de fechamento (26) até o dia 25 seguinte, do início combinado até a fatura do gasto mais recente.',
+    fn: (config, despesas) => {
+      if (!config.length) return [];
+      const fecha = Number(config[0].dia_fechamento);
+      const iso = (t) => new Date(t).toISOString().slice(0, 10);
+      const parse = (s) => { const [a, m, d] = String(s).slice(0, 10).split('-').map(Number); return Date.UTC(a, m - 1, d); };
+      const proximo = (t) => { const d = new Date(t); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, fecha); };
+      const ultimo = despesas.reduce((mx, d) => Math.max(mx, parse(d.ciclo)), parse(config[0].inicio));
+      const lista = [];
+      for (let t = parse(config[0].inicio); t <= ultimo; t = proximo(t)) {
+        const fim = proximo(t) - 86400000;
+        lista.push({ ciclo: iso(t), fim: iso(fim), dias: Math.round((fim - t) / 86400000) + 1 });
       }
-      return [...meses.values()]
-        .sort((a, b) => (a.mes < b.mes ? -1 : 1))
-        .map((r) => ({ ...r, total: Math.round(r.total * 100) / 100 }));
+      return lista;
+    },
+  });
+
+  dash.calc('mensal', {
+    inputs: ['despesas', 'ciclos'],
+    title: 'Total por fatura',
+    description: 'Soma dos valores em cada fatura (26 a 25); itens sem valor contam só como pendentes, e os pagos com vale-alimentação também somam à parte.',
+    fn: (despesas, ciclos) => {
+      const por = new Map(ciclos.map((c) => [c.ciclo, { ciclo: c.ciclo, total: 0, lancamentos: 0, pendentes: 0, vale: 0 }]));
+      for (const d of despesas) {
+        const r = por.get(String(d.ciclo));
+        if (!r) continue;
+        if (d.valor === null || d.valor === '') { r.pendentes += 1; continue; }
+        r.total += Number(d.valor);
+        r.lancamentos += 1;
+        if (d.pagamento === 'Vale-alimentação') r.vale += Number(d.valor);
+      }
+      const r2 = (x) => Math.round(x * 100) / 100;
+      return [...por.values()].map((r) => ({ ...r, total: r2(r.total), vale: r2(r.vale) }));
     },
   });
 
   dash.calc('variacao', {
     inputs: ['mensal'],
-    title: 'Variação vs. mês anterior',
-    description: 'Diferença do total de cada mês para o mês anterior.',
+    title: 'Variação vs. fatura anterior',
+    description: 'Diferença do total de cada fatura para a fatura anterior.',
     fn: (mensal) => mensal.map((r, i) => ({
-      mes: r.mes,
+      ciclo: r.ciclo,
       anterior: i > 0 ? mensal[i - 1].total : null,
       delta: i > 0 ? Math.round((r.total - mensal[i - 1].total) * 100) / 100 : null,
     })),
@@ -223,18 +256,18 @@
 
   dash.calc('categorias', {
     inputs: ['despesas'],
-    title: 'Total por categoria e mês',
-    description: 'Soma dos valores de cada categoria em cada mês.',
+    title: 'Total por categoria e fatura',
+    description: 'Soma dos valores de cada categoria em cada fatura.',
     fn: (despesas) => {
       const soma = new Map();
       for (const d of despesas) {
         if (d.valor === null || d.valor === '') continue;
-        const chave = String(d.data).slice(0, 7) + '|' + d.categoria;
+        const chave = d.ciclo + '|' + d.categoria;
         soma.set(chave, (soma.get(chave) || 0) + Number(d.valor));
       }
       return [...soma].map(([k, total]) => {
-        const [mes, categoria] = k.split('|');
-        return { mes, categoria, total: Math.round(total * 100) / 100 };
+        const [ciclo, categoria] = k.split('|');
+        return { ciclo, categoria, total: Math.round(total * 100) / 100 };
       });
     },
   });
@@ -242,50 +275,53 @@
   dash.calc('diario', {
     inputs: ['despesas'],
     title: 'Total por dia',
-    description: 'Soma dos valores de cada dia.',
+    description: 'Soma dos valores de cada dia, com a fatura a que o dia pertence.',
     fn: (despesas) => {
       const soma = new Map();
       for (const d of despesas) {
         if (d.valor === null || d.valor === '') continue;
-        const dia = String(d.data).slice(0, 10);
-        soma.set(dia, (soma.get(dia) || 0) + Number(d.valor));
+        const chave = String(d.data).slice(0, 10) + '|' + d.ciclo;
+        soma.set(chave, (soma.get(chave) || 0) + Number(d.valor));
       }
-      return [...soma].sort().map(([dia, total]) => ({ dia, mes: dia.slice(0, 7), total: Math.round(total * 100) / 100 }));
+      return [...soma].sort().map(([k, total]) => {
+        const [dia, ciclo] = k.split('|');
+        return { dia, ciclo, total: Math.round(total * 100) / 100 };
+      });
     },
   });
 
   dash.calc('projecao', {
-    inputs: ['despesas', 'mensal'],
-    title: 'Ritmo e provisão mensal',
-    description: 'Média por dia do mês mais recente, projeção até o fim do mês, média dos até 3 meses completos anteriores (ou a projeção, se ainda não houver) e essa média + 10%.',
-    fn: (despesas, mensal) => {
-      if (!mensal.length) return [];
+    inputs: ['despesas', 'mensal', 'ciclos', 'config'],
+    title: 'Ritmo e provisão por fatura',
+    description: 'Na fatura mais recente: média por dia desde o dia 26 até o último gasto anotado e projeção até o dia 25. Média das até 3 faturas anteriores com gastos (ou a projeção, se ainda não houver) e essa média + 10%. Vale: valor mensal informado menos o gasto no vale.',
+    fn: (despesas, mensal, ciclos, config) => {
+      if (!ciclos.length) return [];
       const MARGEM = 0.1;
-      const datas = despesas.map((d) => String(d.data).slice(0, 10)).sort();
-      const primeiro = datas[0];
-      const ultimo = datas[datas.length - 1];
-      const mes = ultimo.slice(0, 7);
-      const [ano, m] = mes.split('-').map(Number);
-      const dias_no_mes = new Date(Date.UTC(ano, m, 0)).getUTCDate();
-      const inicio = primeiro.slice(0, 7) === mes ? Number(primeiro.slice(8, 10)) : 1;
-      const hoje = Number(ultimo.slice(8, 10));
-      const dias = hoje - inicio + 1;
-      const atual = mensal.find((r) => r.mes === mes);
+      const r2 = (x) => Math.round(x * 100) / 100;
+      const parse = (s) => { const [a, m, d] = String(s).slice(0, 10).split('-').map(Number); return Date.UTC(a, m - 1, d); };
+      const c = ciclos[ciclos.length - 1];
+      const atual = mensal.find((r) => r.ciclo === c.ciclo);
+      const datas = despesas.filter((d) => d.ciclo === c.ciclo).map((d) => parse(d.data));
+      const dias = datas.length ? Math.round((Math.max(...datas) - parse(c.ciclo)) / 86400000) + 1 : 0;
       const gasto = atual ? atual.total : 0;
-      const media_diaria = gasto / dias;
-      const projecao_mes = gasto + media_diaria * (dias_no_mes - hoje);
-      const anteriores = mensal.filter((r) => r.mes < mes).slice(-3);
+      const media_diaria = dias ? gasto / dias : 0;
+      const projecao_mes = gasto + media_diaria * (c.dias - dias);
+      const anteriores = mensal.filter((r) => r.ciclo < c.ciclo && r.total > 0).slice(-3);
       const media_mensal = anteriores.length
         ? anteriores.reduce((s, r) => s + r.total, 0) / anteriores.length
         : projecao_mes;
-      const r2 = (x) => Math.round(x * 100) / 100;
+      const vale_mensal = config.length && config[0].vale_mensal !== null && config[0].vale_mensal !== '' ? Number(config[0].vale_mensal) : null;
+      const vale_gasto = atual ? atual.vale : 0;
       return [{
-        mes, gasto, dias, dias_no_mes,
+        ciclo: c.ciclo, fim: c.fim, gasto, dias, dias_no_ciclo: c.dias,
         media_diaria: r2(media_diaria),
         projecao_mes: r2(projecao_mes),
         meses_base: anteriores.length,
         media_mensal: r2(media_mensal),
         provisao_mensal: r2(media_mensal * (1 + MARGEM)),
+        vale_mensal,
+        vale_gasto,
+        vale_saldo: vale_mensal === null ? null : r2(vale_mensal - vale_gasto),
       }];
     },
   });
@@ -293,7 +329,7 @@
   dash.calc('horizontes', {
     inputs: ['projecao'],
     title: 'Reserva por horizonte',
-    description: 'Média mensal e provisão (média + 10%) multiplicadas por 1, 3, 6 e 12 meses.',
+    description: 'Média por fatura e provisão (média + 10%) multiplicadas por 1, 3, 6 e 12 faturas.',
     fn: (projecao) => projecao.length
       ? [1, 3, 6, 12].map((meses) => ({
           meses,
@@ -306,15 +342,15 @@
   const raiz = document.querySelector('.gc');
   raiz.style.setProperty('--gc-c0', dash.colors[0]);
   document.querySelectorAll('.gc-ico').forEach((el) => el.style.setProperty('--ic', dash.colors[Number(el.dataset.ic)]));
+  document.getElementById('t-vale-meter').style.setProperty('--ic', dash.colors[4]);
 
   const CATEGORIAS = ['Alimentação', 'Casa/contas', 'Transporte', 'Saúde', 'Lazer', 'Outros'];
   const corCat = (c) => dash.colors[Math.max(0, CATEGORIAS.indexOf(c)) % dash.colors.length];
   const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const pct = new Intl.NumberFormat('pt-BR', { style: 'percent', maximumFractionDigits: 0 });
   const brlCurto = (v) => (Math.abs(v) >= 1000 ? 'R$ ' + d3.format('.1~f')(v / 1000).replace('.', ',') + ' mil' : brl.format(v).replace(/,00$/, ''));
-  const NOMES_MES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-  const nomeMes = (mes) => NOMES_MES[Number(mes.slice(5, 7)) - 1] + ' de ' + mes.slice(0, 4);
   const diaMes = (iso) => iso.slice(8, 10) + '/' + iso.slice(5, 7);
+  const nomeCiclo = (c) => `${diaMes(c.ciclo)} a ${diaMes(c.fim)}`;
   const SEMANA = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
   const diaSemana = (iso) => SEMANA[new Date(iso + 'T12:00:00Z').getUTCDay()];
   const semValor = (d) => d.valor === null || d.valor === '';
@@ -338,8 +374,8 @@
     setTimeout(() => raiz.classList.remove('anima'), 1500);
   };
 
-  const sel = document.getElementById('mes');
-  sel.addEventListener('change', () => dash.setParams({ mes: sel.value }));
+  const sel = document.getElementById('ciclo');
+  sel.addEventListener('change', () => dash.setParams({ ciclo: sel.value }));
 
   function tooltip(box) {
     let tip = box.querySelector('.gc-tip');
@@ -439,7 +475,7 @@
       svg.append('rect').attr('class', 'bar bar-h').attr('x', ml).attr('y', yy + 2).attr('width', Math.max(3, x(d.valor) - ml)).attr('height', 22).attr('rx', 4)
         .style('animation-delay', i * 60 + 'ms')
         .attr('fill', corCat(d.rotulo))
-        .on('mousemove', (event) => tip.show(event, d.rotulo, `${brl.format(d.valor)} · ${pct.format(d.valor / total)} do mês`, corCat(d.rotulo)))
+        .on('mousemove', (event) => tip.show(event, d.rotulo, `${brl.format(d.valor)} · ${pct.format(d.valor / total)} da fatura`, corCat(d.rotulo)))
         .on('mouseleave', () => tip.hide());
       textoCap(svg).attr('x', W - mr + 8).attr('y', yy + 13).attr('dy', '0.32em').attr('fill', 'var(--color-fg-muted)')
         .style('font-variant-numeric', 'tabular-nums').text(brl.format(d.valor));
@@ -459,7 +495,8 @@
     });
   });
 
-  let mesAtual = null;
+  let cicloAtual = null;
+  let rotuloAtual = '';
   function desenharTabela() {
     document.querySelectorAll('#tb-lanc th[data-col]').forEach((th) => {
       if (th.dataset.col === ordem.col) th.setAttribute('aria-sort', ordem.dir > 0 ? 'ascending' : 'descending');
@@ -468,8 +505,8 @@
     const desp = dash.data('despesas');
     const tb = document.querySelector('#tb-lanc tbody');
     const q = busca.value.trim().toLowerCase();
-    const doMes = desp.status === 'ok' ? desp.data.filter((d) => String(d.data).slice(0, 7) === mesAtual) : [];
-    const linhas = doMes
+    const doCiclo = desp.status === 'ok' ? desp.data.filter((d) => String(d.ciclo) === cicloAtual) : [];
+    const linhas = doCiclo
       .filter((d) => !q || [d.descricao, d.categoria, d.autor, d.pagamento].some((s) => String(s || '').toLowerCase().includes(q)))
       .sort((a, b) => {
         const c = ordem.col;
@@ -494,95 +531,123 @@
       td('opt').textContent = d.autor;
       return tr;
     }));
-    document.getElementById('contagem').textContent = doMes.length
-      ? (linhas.length === doMes.length ? `${doMes.length} lançamentos` : `${linhas.length} de ${doMes.length} lançamentos`)
+    const vazio = desp.status === 'ok' && !doCiclo.length;
+    document.getElementById('tb-lanc').hidden = vazio;
+    document.getElementById('lanc-vazio').hidden = !vazio;
+    document.getElementById('lanc-vazio-t').textContent = `Nenhum gasto anotado na fatura ${rotuloAtual} ainda. Mandem no grupo, um por linha:`;
+    document.getElementById('contagem').textContent = doCiclo.length
+      ? (linhas.length === doCiclo.length ? `${doCiclo.length} lançamentos` : `${linhas.length} de ${doCiclo.length} lançamentos`)
       : '';
   }
 
   dash.onData(() => {
-    const mensal = dash.data('mensal');
-    const meses = mensal.status === 'ok' ? mensal.data : [];
-    const ultimo = meses.length ? meses[meses.length - 1].mes : null;
-    let mes = dash.params().mes;
-    if (!meses.some((r) => r.mes === mes)) mes = ultimo;
-    mesAtual = mes;
-    if (meses.length) animarUmaVez();
+    const cic = dash.data('ciclos');
+    const ciclos = cic.status === 'ok' ? cic.data : [];
+    const ultimo = ciclos.length ? ciclos[ciclos.length - 1] : null;
+    let c = ciclos.find((x) => x.ciclo === dash.params().ciclo) || ultimo;
+    cicloAtual = c ? c.ciclo : null;
+    rotuloAtual = c ? nomeCiclo(c) : '';
+    if (ciclos.length) animarUmaVez();
 
     if (document.activeElement !== sel) {
-      sel.replaceChildren(...[...meses].reverse().map((r) => new Option(nomeMes(r.mes), r.mes)));
-      if (mes) sel.value = mes;
+      sel.replaceChildren(...[...ciclos].reverse().map((x) => new Option(nomeCiclo(x), x.ciclo)));
+      if (c) sel.value = c.ciclo;
     }
 
     // Abertura
-    const linha = meses.find((r) => r.mes === mes);
+    const mensal = dash.data('mensal');
+    const linha = mensal.status === 'ok' ? mensal.data.find((r) => r.ciclo === cicloAtual) : null;
     if (linha) {
-      document.getElementById('h-mes').textContent = 'Gastos de ' + nomeMes(mes);
-      mark(set('#h-total', brl.format(linha.total)), 'mensal', 'total', 'mes=' + mes);
+      document.getElementById('h-ciclo').textContent = 'Fatura de ' + rotuloAtual;
+      mark(set('#h-total', brl.format(linha.total)), 'mensal', 'total', 'ciclo=' + cicloAtual);
       const cats = dash.data('categorias');
-      const top = cats.status === 'ok' ? cats.data.filter((r) => r.mes === mes).sort((a, b) => b.total - a.total)[0] : null;
-      set('#h-resumo', `${linha.lancamentos} gastos anotados` +
-        (top ? `; a maior parte em ${top.categoria.toLowerCase()} (${pct.format(top.total / linha.total)})` : '') +
-        (linha.pendentes ? `. ${linha.pendentes} ${linha.pendentes > 1 ? 'itens ainda estão' : 'item ainda está'} sem valor.` : '.'));
-      mark(set('#t-n', String(linha.lancamentos)), 'mensal', 'lancamentos', 'mes=' + mes);
+      const top = cats.status === 'ok' ? cats.data.filter((r) => r.ciclo === cicloAtual).sort((a, b) => b.total - a.total)[0] : null;
+      set('#h-resumo', linha.lancamentos === 0 && linha.pendentes === 0
+        ? 'Nenhum gasto anotado ainda nesta fatura. Os totais aparecem assim que vocês mandarem os primeiros no grupo.'
+        : `${linha.lancamentos} gastos anotados` +
+          (top ? `; a maior parte em ${top.categoria.toLowerCase()} (${pct.format(top.total / linha.total)})` : '') +
+          (linha.pendentes ? `. ${linha.pendentes} ${linha.pendentes > 1 ? 'itens ainda estão' : 'item ainda está'} sem valor.` : '.'));
+      mark(set('#t-n', String(linha.lancamentos)), 'mensal', 'lancamentos', 'ciclo=' + cicloAtual);
       const tPend = set('#t-pend', linha.pendentes ? `${linha.pendentes} sem valor` : 'Todos com valor');
       tPend.className = linha.pendentes ? 's pend' : 's';
-      if (linha.pendentes) mark(tPend, 'mensal', 'pendentes', 'mes=' + mes); else unmark(tPend);
+      if (linha.pendentes) mark(tPend, 'mensal', 'pendentes', 'ciclo=' + cicloAtual); else unmark(tPend);
+      mark(set('#t-vale', brl.format(linha.vale)), 'mensal', 'vale', 'ciclo=' + cicloAtual);
     } else if (!pronto('mensal')) {
-      for (const s of ['#h-total', '#h-resumo', '#t-n']) document.querySelector(s).classList.add('dash-skeleton');
+      for (const s of ['#h-total', '#h-resumo', '#t-n', '#t-vale']) document.querySelector(s).classList.add('dash-skeleton');
     }
 
     const varr = dash.data('variacao');
-    const v = varr.status === 'ok' ? varr.data.find((r) => r.mes === mes) : null;
+    const v = varr.status === 'ok' ? varr.data.find((r) => r.ciclo === cicloAtual) : null;
     const tDelta = document.getElementById('t-delta');
     if (v && v.delta !== null) {
-      mark(set('#t-delta', (v.delta > 0 ? '+' : '') + brl.format(v.delta)), 'variacao', 'delta', 'mes=' + mes);
+      mark(set('#t-delta', (v.delta > 0 ? '+' : '') + brl.format(v.delta)), 'variacao', 'delta', 'ciclo=' + cicloAtual);
       tDelta.style.color = v.delta > 0 ? 'var(--color-bad)' : 'var(--color-ok)';
-      set('#t-delta-s', v.delta > 0 ? 'Gastaram mais que no mês anterior' : 'Gastaram menos que no mês anterior');
+      set('#t-delta-s', v.delta > 0 ? 'Gastaram mais que na fatura anterior' : 'Gastaram menos que na fatura anterior');
     } else if (v) {
       unmark(tDelta); tDelta.style.color = '';
       set('#t-delta', '—');
-      set('#t-delta-s', 'Primeiro mês anotado');
+      set('#t-delta-s', 'Primeira fatura anotada');
     }
 
-    // Ritmo do mês mais recente
+    // Ritmo da fatura mais recente e vale
     const proj = dash.data('projecao');
     const p = proj.status === 'ok' && proj.data.length ? proj.data[0] : null;
     if (p) {
-      const ehAtual = mes === p.mes;
-      const tMedia = set('#t-media', ehAtual ? brl.format(p.media_diaria) : '—');
-      if (ehAtual) mark(tMedia, 'projecao', 'media_diaria'); else unmark(tMedia);
-      set('#t-dias', ehAtual ? `${p.dias} dias com anotações` : `Calculada só para ${nomeMes(p.mes)}`);
-      const tProj = set('#t-proj', ehAtual ? brl.format(p.projecao_mes) : '—');
-      if (ehAtual) mark(tProj, 'projecao', 'projecao_mes'); else unmark(tProj);
-      document.getElementById('t-meter').style.width = ehAtual && p.projecao_mes ? Math.min(100, (p.gasto / p.projecao_mes) * 100) + '%' : '0';
-      set('#t-proj-s', ehAtual ? `${pct.format(p.projecao_mes ? p.gasto / p.projecao_mes : 0)} já gasto · ${p.dias_no_mes} dias no mês` : 'No ritmo atual até o fim do mês');
+      const ehAtual = cicloAtual === p.ciclo;
+      const temGasto = ehAtual && p.dias > 0;
+      const tMedia = set('#t-media', temGasto ? brl.format(p.media_diaria) : '—');
+      if (temGasto) mark(tMedia, 'projecao', 'media_diaria'); else unmark(tMedia);
+      set('#t-dias', !ehAtual ? 'Calculada só para a fatura atual' : temGasto ? `${p.dias} de ${p.dias_no_ciclo} dias da fatura` : `Fatura de ${p.dias_no_ciclo} dias, até ${diaMes(p.fim)}`);
+      const tProj = set('#t-proj', temGasto ? brl.format(p.projecao_mes) : '—');
+      if (temGasto) mark(tProj, 'projecao', 'projecao_mes'); else unmark(tProj);
+      document.getElementById('t-meter').style.width = temGasto && p.projecao_mes ? Math.min(100, (p.gasto / p.projecao_mes) * 100) + '%' : '0';
+      set('#t-proj-s', temGasto ? `${pct.format(p.gasto / p.projecao_mes)} já gasto · fecha em ${diaMes(p.fim)}` : 'Aparece com os primeiros gastos');
 
-      set('#p-prov', brl.format(p.provisao_mensal));
-      set('#p-media', brl.format(p.media_mensal));
-      document.getElementById('p-base').textContent = p.meses_base
-        ? `(últimos ${p.meses_base} ${p.meses_base > 1 ? 'meses completos' : 'mês completo'})`
-        : `(projeção de ${NOMES_MES[Number(p.mes.slice(5, 7)) - 1]})`;
+      const tValeS = document.getElementById('t-vale-s');
+      const meter = document.getElementById('t-vale-meter');
+      if (ehAtual && p.vale_mensal !== null) {
+        tValeS.textContent = `Saldo ${brl.format(p.vale_saldo)} de ${brl.format(p.vale_mensal)}`;
+        mark(tValeS, 'projecao', 'vale_saldo');
+        meter.hidden = false;
+        document.getElementById('t-vale-barra').style.width = Math.min(100, (p.vale_gasto / p.vale_mensal) * 100) + '%';
+        tValeS.style.color = p.vale_saldo < 0 ? 'var(--color-bad)' : '';
+      } else {
+        unmark(tValeS);
+        meter.hidden = true;
+        tValeS.style.color = '';
+        tValeS.textContent = ehAtual ? 'Gasto com (banri) nesta fatura. Informe o valor do vale para ver o saldo.' : 'Gasto com (banri) nesta fatura';
+      }
+
+      const temBase = p.media_mensal > 0;
+      set('#p-prov', temBase ? brl.format(p.provisao_mensal) : '—');
+      set('#p-media', temBase ? brl.format(p.media_mensal) : '—');
+      document.getElementById('p-base').textContent = !temBase ? '' : p.meses_base
+        ? `(últimas ${p.meses_base} ${p.meses_base > 1 ? 'faturas' : 'fatura'})`
+        : `(projeção da fatura atual)`;
       const aviso = document.getElementById('p-aviso');
-      aviso.hidden = p.meses_base >= 3;
-      aviso.textContent = p.meses_base === 0
-        ? `Estimativa ainda fraca: são só ${p.dias} dias de anotações. Ela fica mais confiável a cada mês completo.`
-        : `Baseada em ${p.meses_base} ${p.meses_base > 1 ? 'meses' : 'mês'}; com 3 meses completos a média fica mais estável.`;
+      aviso.hidden = temBase && p.meses_base >= 3;
+      aviso.textContent = !temBase
+        ? 'O planejamento aparece com os primeiros gastos da fatura.'
+        : p.meses_base === 0
+          ? `Estimativa ainda fraca: são só ${p.dias} dias de anotações. Ela fica mais confiável a cada fatura completa.`
+          : `Baseada em ${p.meses_base} ${p.meses_base > 1 ? 'faturas' : 'fatura'}; com 3 faturas completas a média fica mais estável.`;
+      document.getElementById('tb-horiz').hidden = !temBase;
     }
 
     // Categorias
     const bCat = document.getElementById('ch-cat');
     const cats = dash.data('categorias');
     const itensCat = cats.status === 'ok'
-      ? cats.data.filter((r) => r.mes === mes).sort((a, b) => b.total - a.total).map((r) => ({ rotulo: r.categoria, valor: r.total }))
+      ? cats.data.filter((r) => r.ciclo === cicloAtual).sort((a, b) => b.total - a.total).map((r) => ({ rotulo: r.categoria, valor: r.total }))
       : [];
-    if (!semDados(bCat, ['categorias'], itensCat.length ? null : 'Nenhum gasto com valor neste mês.')) barrasH(bCat, itensCat, d3.sum(itensCat, (d) => d.valor));
-    document.getElementById('nota-cat').textContent = mes ? `Por categoria, em ${nomeMes(mes)}.` : 'Por categoria, no mês escolhido.';
+    if (!semDados(bCat, ['categorias'], itensCat.length ? null : 'Nenhum gasto com valor nesta fatura ainda.')) barrasH(bCat, itensCat, d3.sum(itensCat, (d) => d.valor));
+    document.getElementById('nota-cat').textContent = c ? `Por categoria, na fatura de ${rotuloAtual}.` : 'Por categoria, na fatura escolhida.';
 
     // Dia a dia: só os dias com gasto, o mais caro em destaque
     const bDias = document.getElementById('ch-dias');
     const dia = dash.data('diario');
-    const itensDia = dia.status === 'ok' ? dia.data.filter((r) => r.mes === mes) : [];
-    if (!semDados(bDias, ['diario'], itensDia.length ? null : 'Nenhum gasto com valor neste mês.')) {
+    const itensDia = dia.status === 'ok' ? dia.data.filter((r) => r.ciclo === cicloAtual) : [];
+    if (!semDados(bDias, ['diario'], itensDia.length ? null : 'Nenhum gasto com valor nesta fatura ainda.')) {
       const maior = d3.max(itensDia, (r) => r.total);
       barras(bDias, itensDia.map((r) => ({
         rotulo: diaMes(r.dia), valor: r.total, destaque: r.total === maior,
@@ -590,16 +655,20 @@
       })), { valoresNoTopo: true });
     }
 
-    // Mês a mês
-    const bMeses = document.getElementById('ch-meses');
-    if (!semDados(bMeses, ['mensal', 'projecao'])) {
-      barras(bMeses, meses.map((r) => ({
-        rotulo: NOMES_MES[Number(r.mes.slice(5, 7)) - 1].slice(0, 3) + '/' + r.mes.slice(2, 4),
-        valor: r.total, destaque: r.mes === mes,
-        contorno: p && r.mes === p.mes ? p.projecao_mes : 0,
-        titulo: nomeMes(r.mes),
-        linha: brl.format(r.total) + (p && r.mes === p.mes ? ` · projeção ${brl.format(p.projecao_mes)}` : ''),
-      })));
+    // Fatura a fatura
+    const bCiclos = document.getElementById('ch-ciclos');
+    const linhasCiclo = mensal.status === 'ok' ? mensal.data : [];
+    const vazio = !linhasCiclo.some((r) => r.total > 0);
+    if (!semDados(bCiclos, ['mensal', 'projecao'], vazio ? 'Nenhum gasto com valor ainda.' : null)) {
+      barras(bCiclos, linhasCiclo.map((r) => {
+        const x = ciclos.find((k) => k.ciclo === r.ciclo);
+        return {
+          rotulo: diaMes(r.ciclo), valor: r.total, destaque: r.ciclo === cicloAtual,
+          contorno: p && r.ciclo === p.ciclo && p.dias > 0 ? p.projecao_mes : 0,
+          titulo: 'Fatura de ' + (x ? nomeCiclo(x) : diaMes(r.ciclo)),
+          linha: brl.format(r.total) + (p && r.ciclo === p.ciclo && p.dias > 0 ? ` · projeção ${brl.format(p.projecao_mes)}` : ''),
+        };
+      }));
     }
 
     // Planejamento por horizonte
@@ -607,7 +676,7 @@
     const steps = document.getElementById('tb-horiz');
     steps.replaceChildren(...(hz.status === 'ok' ? hz.data : []).map((r) => {
       const card = document.createElement('div'); card.className = 'gc-step';
-      const k = document.createElement('div'); k.className = 'k'; k.textContent = r.meses === 1 ? 'Próximo mês' : `Próximos ${r.meses} meses`;
+      const k = document.createElement('div'); k.className = 'k'; k.textContent = r.meses === 1 ? 'Próxima fatura' : `Próximas ${r.meses} faturas`;
       const val = document.createElement('div'); val.className = 'v'; val.textContent = brl.format(r.com_margem);
       mark(val, 'horizontes', 'com_margem', 'meses=' + r.meses);
       const s = document.createElement('div'); s.className = 's'; s.textContent = `${brl.format(r.base)} sem margem`;

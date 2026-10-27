@@ -1,9 +1,1 @@
-id,data,descricao,valor,categoria,pagamento,autor,origem,pista_categoria,pendente,mensagem
-1,2026-10-16,Almoço Bruna,31.00,Alimentação,Crédito,Bruna,antigo,palavra-chave,False,16/10/2026 11:30
-2,2026-10-16,Morango + agua vinha paulinho,25.00,Alimentação,Banrisul,Bruna,antigo,palavra-chave,False,16/10/2026 11:30
-3,2026-10-16,Zaffari,,Alimentação,,Tassio,antigo,palavra-chave,True,19/10/2026 13:01
-4,2026-10-17,Ildo,,Outros,,Tassio,antigo,sem-pista,True,19/10/2026 13:01
-5,2026-10-17,Pipoca redenção,15.00,Lazer,,Tassio,antigo,palavra-chave,False,19/10/2026 13:01
-6,2026-10-18,Bets,,Outros,,Tassio,antigo,sem-pista,True,19/10/2026 13:01
-7,2026-10-18,Uber teatro,11.35,Transporte,,Tassio,antigo,palavra-chave,False,19/10/2026 13:01
-8,2026-10-18,Zafari,,Alimentação,,Tassio,antigo,palavra-chave,True,19/10/2026 13:01
+id,data,ciclo,descricao,valor,categoria,pagamento,autor,origem,pista_categoria,pendente,mensagem

@@ -17,6 +17,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 RAIZ = Path(__file__).resolve().parent.parent
 SAIDA = RAIZ / "planilha" / "Gastos_Casa.xlsx"
 CATEGORIAS = ["Alimentação", "Casa/contas", "Transporte", "Saúde", "Lazer", "Outros"]
+PAGAMENTOS = ["Crédito", "Débito", "Pix", "Dinheiro", "Vale-alimentação"]
 LINHAS = 1000  # linhas que as fórmulas cobrem
 
 FONTE = "Arial"
@@ -25,7 +26,7 @@ VERDE_CLARO = "E3F1EA"
 CINZA = "F3F5F4"
 BORDA = Side(style="thin", color="D5DBD8")
 MOEDA = '"R$" #,##0.00;-"R$" #,##0.00;"-"'
-MES = "mmm/yyyy"
+CICLO = "dd/mm/yyyy"  # cada fatura é identificada pelo dia em que começa
 
 titulo = Font(name=FONTE, size=16, bold=True, color=VERDE)
 cabec = Font(name=FONTE, size=10, bold=True, color="FFFFFF")
@@ -74,43 +75,50 @@ def lancamentos(wb, despesas):
     dv.error, dv.errorTitle = "Escolha uma das categorias da lista.", "Categoria"
     ws.add_data_validation(dv)
     dv.add(f"C2:C{LINHAS + 1}")
+    dvp = DataValidation(type="list", formula1='"' + ",".join(PAGAMENTOS) + '"', allow_blank=True)
+    dvp.error, dvp.errorTitle = "Escolha uma das formas de pagamento da lista.", "Pagamento"
+    ws.add_data_validation(dvp)
+    dvp.add(f"E2:E{LINHAS + 1}")
 
     # Linha com descrição e sem valor fica amarela: falta o valor
     ws.conditional_formatting.add(
         f"A2:F{LINHAS + 1}",
         FormulaRule(formula=['AND($B2<>"",$D2="")'], fill=PatternFill("solid", fgColor="FCE8B2")))
-    ws["H1"] = "Linhas amarelas estão sem valor e não entram nos totais."
+    ws["H1"] = "Linhas amarelas estão sem valor e não entram nos totais. (banri) = Vale-alimentação."
     ws["H1"].font = nota
     return ws
 
 
-def resumo(wb, primeiro_mes):
+def resumo(wb, inicio):
     ws = wb.create_sheet("Resumo")
-    ws["A1"] = "Gastos Casa — resumo por mês"
+    ws["A1"] = "Gastos Casa — resumo por fatura"
     ws["A1"].font = titulo
-    ws["A2"] = "Totais calculados a partir da aba Lançamentos. Itens sem valor contam só como pendentes."
+    ws["A2"] = "Cada fatura vai do dia de fechamento (26) ao dia 25 seguinte. Itens sem valor contam só como pendentes."
     ws["A2"].font = nota
-    cabecalho(ws, 4, ["Mês", "Total", "Gastos com valor", "Sem valor", "Vs. mês anterior"], [14, 15, 16, 12, 17])
+    cabecalho(ws, 4, ["Fatura (início)", "Total", "Gastos com valor", "Sem valor", "Vs. fatura anterior", "No vale"],
+              [15, 15, 16, 12, 18, 14])
     D = f"Lançamentos!$A$2:$A${LINHAS + 1}"
     V = f"Lançamentos!$D$2:$D${LINHAS + 1}"
-    no_mes = lambda m: f'{D},">="&{m},{D},"<"&EDATE({m},1)'
+    P = f"Lançamentos!$E$2:$E${LINHAS + 1}"
+    no_ciclo = lambda m: f'{D},">="&{m},{D},"<"&EDATE({m},1)'
     for i in range(12):
         r = 5 + i
-        ws.cell(r, 1, primeiro_mes if i == 0 else f"=EDATE(A{r - 1},1)").number_format = MES
-        ws.cell(r, 2, f"=SUMIFS({V},{no_mes(f'A{r}')})").number_format = MOEDA
-        ws.cell(r, 3, f'=COUNTIFS({no_mes(f"A{r}")},{V},"<>")')
-        ws.cell(r, 4, f'=COUNTIFS({no_mes(f"A{r}")},{V},"")')
+        ws.cell(r, 1, inicio if i == 0 else f"=EDATE(A{r - 1},1)").number_format = CICLO
+        ws.cell(r, 2, f"=SUMIFS({V},{no_ciclo(f'A{r}')})").number_format = MOEDA
+        ws.cell(r, 3, f'=COUNTIFS({no_ciclo(f"A{r}")},{V},"<>")')
+        ws.cell(r, 4, f'=COUNTIFS({no_ciclo(f"A{r}")},{V},"")')
         ws.cell(r, 5, "" if i == 0 else f'=IF(B{r}=0,"",B{r}-B{r - 1})').number_format = MOEDA
-        for c in range(1, 6):
+        ws.cell(r, 6, f'=SUMIFS({V},{no_ciclo(f"A{r}")},{P},"Vale-alimentação")').number_format = MOEDA
+        for c in range(1, 7):
             ws.cell(r, c).font = normal
             ws.cell(r, c).border = Border(bottom=BORDA)
     ws.cell(5, 1).font = entrada
-    ws.cell(5, 1).comment = Comment("Primeiro mês do grupo (outubro/2026). Os seguintes são calculados.", "Gastos Casa")
+    ws.cell(5, 1).comment = Comment("Início da primeira fatura anotada (26/10/2026, fechamento dos cartões). As seguintes são calculadas.", "Gastos Casa")
 
-    # Categorias × meses
+    # Categorias × faturas
     ws["G4"] = "Categoria"
     for i in range(12):
-        ws.cell(4, 8 + i, f"=A{5 + i}").number_format = MES
+        ws.cell(4, 8 + i, f"=A{5 + i}").number_format = CICLO
     for c in range(7, 20):
         ws.cell(4, c).font, ws.cell(4, c).fill = cabec, fundo_cabec
         ws.cell(4, c).alignment = Alignment(horizontal="center")
@@ -122,7 +130,7 @@ def resumo(wb, primeiro_mes):
         ws.cell(r, 7, cat).font = normal
         for i in range(12):
             col = ws.cell(4, 8 + i).column_letter
-            c = ws.cell(r, 8 + i, f"=SUMIFS({V},{no_mes(f'{col}$4')},{C},$G{r})")
+            c = ws.cell(r, 8 + i, f"=SUMIFS({V},{no_ciclo(f'{col}$4')},{C},$G{r})")
             c.number_format, c.font, c.border = MOEDA, normal, Border(bottom=BORDA)
     r = 5 + len(CATEGORIAS)
     ws.cell(r, 7, "Total").font = Font(name=FONTE, size=10, bold=True)
@@ -133,7 +141,7 @@ def resumo(wb, primeiro_mes):
 
     # Gráficos
     barras = BarChart()
-    barras.title = "Total por mês"
+    barras.title = "Total por fatura"
     barras.y_axis.title = "R$"
     barras.add_data(Reference(ws, min_col=2, min_row=4, max_row=16), titles_from_data=True)
     barras.set_categories(Reference(ws, min_col=1, min_row=5, max_row=16))
@@ -142,11 +150,11 @@ def resumo(wb, primeiro_mes):
     ws.add_chart(barras, "A19")
 
     pizza = PieChart()
-    pizza.title = "Por categoria (mês mais recente com gastos)"
-    ws["G13"] = "Mês mais recente"
+    pizza.title = "Por categoria (fatura atual)"
+    ws["G13"] = "Fatura atual"
     ws["G13"].font = nota
-    ws["H13"] = f"=DATE(YEAR(MAX({D})),MONTH(MAX({D})),1)"
-    ws["H13"].number_format = MES
+    ws["H13"] = "=Planejamento!$B$7"
+    ws["H13"].number_format = CICLO
     for j in range(len(CATEGORIAS)):
         ws.cell(14 + j, 7, f"=G{5 + j}").font = normal
         c = ws.cell(14 + j, 8, f"=INDEX($H{5 + j}:$S{5 + j},MATCH($H$13,$H$4:$S$4,0))")
@@ -160,7 +168,7 @@ def resumo(wb, primeiro_mes):
     ws.freeze_panes = "A5"
 
 
-def planejamento(wb):
+def planejamento(wb, config):
     ws = wb.create_sheet("Planejamento")
     ws.column_dimensions["A"].width = 34
     ws.column_dimensions["B"].width = 16
@@ -169,25 +177,31 @@ def planejamento(wb):
     ws.column_dimensions["F"].width = 14
     ws["A1"] = "Planejamento futuro"
     ws["A1"].font = titulo
-    ws["A2"] = "Quanto separar por mês no ritmo atual. Células amarelas são para vocês editarem."
+    ws["A2"] = "Quanto separar por fatura no ritmo atual. Células amarelas são para vocês editarem."
     ws["A2"].font = nota
 
     D = f"Lançamentos!$A$2:$A${LINHAS + 1}"
     V = f"Lançamentos!$D$2:$D${LINHAS + 1}"
+    P = f"Lançamentos!$E$2:$E${LINHAS + 1}"
+    R_A, R_B = "Resumo!$A$5:$A$16", "Resumo!$B$5:$B$16"
+    anteriores = f'{R_A},">="&EDATE(B7,-3),{R_A},"<"&B7,{R_B},">0"'
     linhas = [
         ("Margem de segurança", 0.10, "0%", "Edite: quanto a mais separar além da média."),
-        ("Mês mais recente", f"=DATE(YEAR(MAX({D})),MONTH(MAX({D})),1)", MES, None),
-        ("Gasto no mês mais recente", f'=SUMIFS({V},{D},">="&B5,{D},"<"&EDATE(B5,1))', MOEDA, None),
-        ("Primeiro dia com anotação no mês", f"=IF(MIN({D})>=B5,DAY(MIN({D})),1)", "0", "Se o grupo começou no meio do mês, conta a partir daí."),
-        ("Último dia com anotação", f"=DAY(MAX({D}))", "0", None),
-        ("Dias com anotações", "=B8-B7+1", "0", None),
-        ("Dias no mês", "=DAY(EOMONTH(B5,0))", "0", None),
-        ("Média por dia", "=IF(B9=0,0,B6/B9)", MOEDA, None),
-        ("Projeção do mês", "=B6+B11*(B10-B8)", MOEDA, "Gasto até agora + média por dia × dias que faltam."),
-        ("Meses completos anteriores usados", f'=COUNTIFS(Resumo!$A$5:$A$16,">="&EDATE(B5,-3),Resumo!$A$5:$A$16,"<"&B5,Resumo!$B$5:$B$16,">0")', "0", "Até 3 meses antes do mês mais recente."),
-        ("Média mensal (gastos do grupo)", f'=IF(B13=0,B12,AVERAGEIFS(Resumo!$B$5:$B$16,Resumo!$A$5:$A$16,">="&EDATE(B5,-3),Resumo!$A$5:$A$16,"<"&B5,Resumo!$B$5:$B$16,">0"))', MOEDA, "Sem meses completos ainda, usa a projeção do mês."),
+        ("Dia de fechamento da fatura", config["dia_fechamento"], "0", "Dia em que a fatura dos cartões fecha."),
+        ("Vale-alimentação por mês", config["vale_mensal"], MOEDA, "Preencham com o valor que cai no vale por mês para ver o saldo."),
+        ("Fatura atual (início)", f"=IF(COUNT({D})=0,Resumo!$A$5,DATE(YEAR(MAX({D})),MONTH(MAX({D}))-IF(DAY(MAX({D}))<B5,1,0),B5))", CICLO, "Fatura do gasto mais recente."),
+        ("Fatura atual (fim)", "=EDATE(B7,1)-1", CICLO, None),
+        ("Gasto na fatura atual", f'=SUMIFS({V},{D},">="&B7,{D},"<="&B8)', MOEDA, None),
+        ("Dias com anotações", f"=IF(COUNT({D})=0,0,MAX({D})-B7+1)", "0", "Do dia 26 até o gasto mais recente."),
+        ("Dias na fatura", "=B8-B7+1", "0", None),
+        ("Média por dia", "=IF(B10=0,0,B9/B10)", MOEDA, None),
+        ("Projeção da fatura", "=B9+B12*(B11-B10)", MOEDA, "Gasto até agora + média por dia × dias que faltam."),
+        ("Faturas anteriores usadas", f"=COUNTIFS({anteriores})", "0", "Até 3 faturas antes da atual, com gastos."),
+        ("Média por fatura (gastos do grupo)", f"=IF(B14=0,B13,AVERAGEIFS({R_B},{anteriores}))", MOEDA, "Sem faturas anteriores ainda, usa a projeção da atual."),
         ("Gastos fixos fora do grupo", "=SUM(F5:F24)", MOEDA, "Soma da tabela ao lado."),
-        ("Separar por mês", "=(B14+B15)*(1+B4)", MOEDA, "(Média mensal + fixos) × (1 + margem)."),
+        ("Separar por fatura", "=(B15+B16)*(1+B4)", MOEDA, "(Média por fatura + fixos) × (1 + margem)."),
+        ("Gasto no vale nesta fatura", f'=SUMIFS({V},{D},">="&B7,{D},"<="&B8,{P},"Vale-alimentação")', MOEDA, "Compras marcadas com (banri)."),
+        ("Saldo do vale", '=IF(B6="","Preencha o valor do vale",B6-B18)', MOEDA, None),
     ]
     for i, (rotulo, valor, fmt, comentario) in enumerate(linhas):
         r = 4 + i
@@ -197,30 +211,31 @@ def planejamento(wb):
         c.border = Border(bottom=BORDA)
         if comentario:
             c.comment = Comment(comentario, "Gastos Casa")
-    ws["B4"].font, ws["B4"].fill = entrada, fundo_input
-    for cel in ("A16", "B16"):
+    for cel in ("B4", "B5", "B6"):
+        ws[cel].font, ws[cel].fill = entrada, fundo_input
+    for cel in ("A17", "B17"):
         ws[cel].font, ws[cel].fill = forte, fundo_destaque
 
-    ws["A18"] = "Reserva por horizonte"
-    ws["A18"].font = Font(name=FONTE, size=12, bold=True, color=VERDE)
-    cabecalho(ws, 19, ["Horizonte", "Sem margem", "Com margem"])
+    ws["A21"] = "Reserva por horizonte"
+    ws["A21"].font = Font(name=FONTE, size=12, bold=True, color=VERDE)
+    cabecalho(ws, 22, ["Horizonte", "Sem margem", "Com margem"])
     for i, meses in enumerate([1, 3, 6, 12]):
-        r = 20 + i
-        ws.cell(r, 1, f"{meses} {'mês' if meses == 1 else 'meses'}").font = normal
+        r = 23 + i
+        ws.cell(r, 1, f"{meses} {'fatura' if meses == 1 else 'faturas'}").font = normal
         ws.cell(r, 4, meses).font = Font(name=FONTE, size=10, color="FFFFFF")
-        for col, f in ((2, f"=(B$14+B$15)*D{r}"), (3, f"=B$16*D{r}")):
+        for col, f in ((2, f"=(B$15+B$16)*D{r}"), (3, f"=B$17*D{r}")):
             c = ws.cell(r, col, f)
             c.number_format, c.font, c.border = MOEDA, normal, Border(bottom=BORDA)
-    ws["A25"] = "Estimativa fica mais confiável a cada mês completo anotado."
-    ws["A25"].font = nota
+    ws["A27"] = "Estimativa fica mais confiável a cada fatura completa anotada."
+    ws["A27"].font = nota
 
     barras = BarChart()
     barras.title = "Quanto juntar (com margem)"
-    barras.add_data(Reference(ws, min_col=3, min_row=19, max_row=23), titles_from_data=True)
-    barras.set_categories(Reference(ws, min_col=1, min_row=20, max_row=23))
+    barras.add_data(Reference(ws, min_col=3, min_row=22, max_row=26), titles_from_data=True)
+    barras.set_categories(Reference(ws, min_col=1, min_row=23, max_row=26))
     barras.legend = None
     barras.height, barras.width = 7, 14
-    ws.add_chart(barras, "A27")
+    ws.add_chart(barras, "A29")
 
     # Gastos fixos (para preencher)
     ws["E3"] = "Gastos fixos mensais fora do grupo"
@@ -240,11 +255,11 @@ def planejamento(wb):
 
 def main():
     despesas = json.loads((RAIZ / "dados" / "despesas.json").read_text(encoding="utf-8"))
-    primeiro = min(date.fromisoformat(d["data"]) for d in despesas).replace(day=1)
+    config = json.loads((RAIZ / "scripts" / "config.json").read_text(encoding="utf-8"))
     wb = Workbook()
     lancamentos(wb, despesas)
-    resumo(wb, primeiro)
-    planejamento(wb)
+    resumo(wb, date.fromisoformat(config["inicio"]))
+    planejamento(wb, config)
     SAIDA.parent.mkdir(exist_ok=True)
     wb.save(SAIDA)
     print(SAIDA)

@@ -24,8 +24,9 @@ VALOR = re.compile(r"(?<![\d/.,])(?:R\$\s*)?(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d{1,2
 TAG = re.compile(r"#(\w+)")
 PAGAMENTO = re.compile(r"\(([^)]*)\)")
 FORMAS = {
-    "credito": "Crédito", "cartao": "Crédito", "debito": "Débito", "pix": "Pix",
-    "banri": "Banrisul", "banrisul": "Banrisul", "dinheiro": "Dinheiro",
+    "credito": "Crédito", "cartao": "Crédito", "debito": "Débito", "pix": "Pix", "dinheiro": "Dinheiro",
+    # (banri) é o vale-alimentação do Banrisul
+    "banri": "Vale-alimentação", "banrisul": "Vale-alimentação", "vale": "Vale-alimentação", "va": "Vale-alimentação",
 }
 DIAS = {"segunda": 0, "terca": 1, "quarta": 2, "quinta": 3, "sexta": 4, "sabado": 5, "domingo": 6}
 # Avisos com autor que não são gastos (os avisos do grupo em si chegam sem autor).
@@ -35,6 +36,18 @@ SISTEMA = ("<midia oculta>", "arquivo de midia oculto", "mensagem apagada", "men
 def sem_acento(texto):
     texto = unicodedata.normalize("NFKD", texto)
     return "".join(c for c in texto if not unicodedata.combining(c)).lower()
+
+
+def carregar_config():
+    return json.loads((Path(__file__).parent / "config.json").read_text(encoding="utf-8"))
+
+
+def inicio_do_ciclo(dia, fechamento):
+    """Início do ciclo da fatura que contém `dia` (ex.: fechamento 26 -> 26/10 a 25/11)."""
+    if dia.day >= fechamento:
+        return dia.replace(day=fechamento)
+    anterior = dia.replace(day=1) - timedelta(days=1)
+    return anterior.replace(day=fechamento)
 
 
 def carregar_categorias():
@@ -108,7 +121,8 @@ def categorizar(descricao, tags, cats, palavras):
     return "outros", "sem-pista"
 
 
-def extrair(mensagens, cats, palavras):
+def extrair(mensagens, cats, palavras, config):
+    inicio = datetime.fromisoformat(config["inicio"]).date()
     despesas, ignoradas = [], []
     for msg in mensagens:
         corpo = "\n".join(msg["linhas"])
@@ -135,10 +149,14 @@ def extrair(mensagens, cats, palavras):
             if valor is None and not curta:
                 ignoradas.append(({**msg, "linhas": [linha]}, "linha sem valor"))
                 continue
+            if data < inicio:
+                ignoradas.append(({**msg, "linhas": [linha]}, "antes do início"))
+                continue
             categoria, pista = categorizar(descricao, tags, cats, palavras)
             despesas.append({
                 "id": str(len(despesas) + 1),
                 "data": data.isoformat(),
+                "ciclo": inicio_do_ciclo(data, config["dia_fechamento"]).isoformat(),
                 "descricao": descricao[:1].upper() + descricao[1:],
                 "valor": valor,
                 "categoria": cats[categoria]["nome"],
@@ -156,9 +174,9 @@ def main():
     origem = Path(sys.argv[1]) if len(sys.argv) > 1 else DADOS / "conversa.txt"
     cats, palavras = carregar_categorias()
     mensagens = ler_mensagens(origem)
-    despesas, ignoradas = extrair(mensagens, cats, palavras)
+    despesas, ignoradas = extrair(mensagens, cats, palavras, carregar_config())
 
-    campos = ["id", "data", "descricao", "valor", "categoria", "pagamento", "autor", "origem",
+    campos = ["id", "data", "ciclo", "descricao", "valor", "categoria", "pagamento", "autor", "origem",
               "pista_categoria", "pendente", "mensagem"]
     with open(DADOS / "despesas.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=campos)
