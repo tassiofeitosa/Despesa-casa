@@ -218,10 +218,10 @@ def planejamento(wb, config):
     linhas = {
         4: ("Margem de segurança", 0.10, "0%", "Edite: quanto a mais separar além da média."),
         5: ("Dia de fechamento da fatura", config["dia_fechamento"], "0", "Dia em que a fatura dos cartões fecha."),
-        6: ("Fatura atual (início)", f"=IF(COUNT({D})=0,Resumo!$A$6,DATE(YEAR(MAX({D})),MONTH(MAX({D}))-IF(DAY(MAX({D}))<B5,1,0),B5))", CICLO, "Fatura do gasto mais recente."),
+        6: ("Fatura atual (início) — pela data de hoje", "=DATE(YEAR(TODAY()),MONTH(TODAY())-IF(DAY(TODAY())<B5,1,0),B5)", CICLO, "Fatura que contém a data de hoje."),
         7: ("Fatura atual (fim)", "=EDATE(B6,1)-1", CICLO, None),
         8: ("Dias na fatura", "=B7-B6+1", "0", None),
-        9: ("Dias com anotações", f"=IF(COUNT({D})=0,0,MAX({D})-B6+1)", "0", "Do dia 26 até o gasto mais recente."),
+        9: ("Dias já passados na fatura", "=MAX(0,MIN(TODAY(),B7)-B6+1)", "0", "Do dia 26 até hoje."),
         11: ("Cartão (crédito) nesta fatura", f"={forma('Crédito')}", MOEDA, "Vai para a fatura que vocês pagam no mês seguinte."),
         12: ("Conta (Pix, débito, dinheiro)", f"={forma('Pix')}+{forma('Débito')}+{forma('Dinheiro')}", MOEDA, None),
         13: ("Cartão + conta", "=B11+B12", MOEDA, None),
