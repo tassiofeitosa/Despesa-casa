@@ -1,1 +1,16 @@
 id,data,ciclo,descricao,valor,categoria,pagamento,autor,origem,pista_categoria,pendente,mensagem
+1,2026-10-27,2026-10-26,Lasanha feira,18.00,Alimentação,Crédito,Bruna,antigo,palavra-chave,False,27/10/2026 13:59
+2,2026-10-27,2026-10-26,Bolo banana + fatia focaccia feira,34.00,Alimentação,Crédito,Bruna,antigo,palavra-chave,False,27/10/2026 13:59
+3,2026-10-27,2026-10-26,Cafe manha brasco,54.00,Alimentação,Vale-alimentação,Bruna,antigo,palavra-chave,False,27/10/2026 13:59
+4,2026-10-27,2026-10-26,Padaria,14.52,Alimentação,Crédito,Tassio,antigo,palavra-chave,False,27/10/2026 16:39
+5,2026-10-28,2026-10-26,Zaffari,73.21,Alimentação,Vale-alimentação,Tassio,antigo,palavra-chave,False,28/10/2026 08:36
+6,2026-10-28,2026-10-26,2 tênis (parcela 1/6),33.33,Outros,Crédito,Tassio,padrao,sem-pista,False,28/10/2026 10:08
+7,2026-11-28,2026-11-26,2 tênis (parcela 2/6),33.33,Outros,Crédito,Tassio,padrao,sem-pista,False,28/10/2026 10:08
+8,2026-12-28,2026-12-26,2 tênis (parcela 3/6),33.33,Outros,Crédito,Tassio,padrao,sem-pista,False,28/10/2026 10:08
+9,2027-01-28,2027-01-26,2 tênis (parcela 4/6),33.33,Outros,Crédito,Tassio,padrao,sem-pista,False,28/10/2026 10:08
+10,2027-02-28,2027-02-26,2 tênis (parcela 5/6),33.33,Outros,Crédito,Tassio,padrao,sem-pista,False,28/10/2026 10:08
+11,2027-03-28,2027-03-26,2 tênis (parcela 6/6),33.35,Outros,Crédito,Tassio,padrao,sem-pista,False,28/10/2026 10:08
+12,2026-10-28,2026-10-26,Center shopping,53.96,Alimentação,Vale-alimentação,Tassio,antigo,vale,False,28/10/2026 20:26
+13,2026-10-28,2026-10-26,Presente colega trabalho,25.00,Outros,Pix,Tassio,antigo,sem-pista,False,28/10/2026 20:27
+14,2026-10-28,2026-10-26,Paulinho frutas,26.00,Alimentação,Crédito,Bruna,antigo,palavra-chave,False,28/10/2026 20:29
+15,2026-10-28,2026-10-26,Masssagem,90.00,Lazer,Pix,Bruna,antigo,palavra-chave,False,28/10/2026 20:29

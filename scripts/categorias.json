@@ -1,23 +1,130 @@
 {
   "alimentacao": {
     "nome": "Alimentação",
-    "palavras": ["mercado", "zaffari", "zafari", "nacional", "carrefour", "big", "atacadao", "asun", "feira", "fruteira", "padaria", "acougue", "açougue", "almoco", "almoço", "janta", "jantar", "cafe", "café", "lanche", "restaurante", "ifood", "delivery", "pizza", "hamburguer", "morango", "agua", "água", "fruta", "carne", "pao", "pão"]
+    "palavras": [
+      "mercado",
+      "zaffari",
+      "zafari",
+      "nacional",
+      "carrefour",
+      "big",
+      "atacadao",
+      "asun",
+      "feira",
+      "fruteira",
+      "padaria",
+      "acougue",
+      "açougue",
+      "almoco",
+      "almoço",
+      "janta",
+      "jantar",
+      "cafe",
+      "café",
+      "lanche",
+      "restaurante",
+      "ifood",
+      "delivery",
+      "pizza",
+      "hamburguer",
+      "morango",
+      "agua",
+      "água",
+      "fruta",
+      "carne",
+      "pao",
+      "pão",
+      "frutas",
+      "lancheria"
+    ]
   },
   "casa": {
     "nome": "Casa/contas",
-    "palavras": ["aluguel", "condominio", "condomínio", "luz", "ceee", "energia", "conta de agua", "conta da agua", "dmae", "gas", "gás", "internet", "net", "vivo", "claro", "tim", "iptu", "limpeza", "faxina", "diarista", "manutencao", "manutenção"]
+    "palavras": [
+      "aluguel",
+      "condominio",
+      "condomínio",
+      "luz",
+      "ceee",
+      "energia",
+      "conta de agua",
+      "conta da agua",
+      "dmae",
+      "gas",
+      "gás",
+      "internet",
+      "net",
+      "vivo",
+      "claro",
+      "tim",
+      "iptu",
+      "limpeza",
+      "faxina",
+      "diarista",
+      "manutencao",
+      "manutenção"
+    ]
   },
   "transporte": {
     "nome": "Transporte",
-    "palavras": ["uber", "99", "taxi", "táxi", "onibus", "ônibus", "passagem", "gasolina", "combustivel", "combustível", "posto", "estacionamento", "pedagio", "pedágio", "oficina", "mecanico", "mecânico"]
+    "palavras": [
+      "uber",
+      "99",
+      "taxi",
+      "táxi",
+      "onibus",
+      "ônibus",
+      "passagem",
+      "gasolina",
+      "combustivel",
+      "combustível",
+      "posto",
+      "estacionamento",
+      "pedagio",
+      "pedágio",
+      "oficina",
+      "mecanico",
+      "mecânico"
+    ]
   },
   "saude": {
     "nome": "Saúde",
-    "palavras": ["farmacia", "farmácia", "panvel", "drogaria", "remedio", "remédio", "medico", "médico", "consulta", "exame", "dentista", "plano de saude", "unimed", "academia"]
+    "palavras": [
+      "farmacia",
+      "farmácia",
+      "panvel",
+      "drogaria",
+      "remedio",
+      "remédio",
+      "medico",
+      "médico",
+      "consulta",
+      "exame",
+      "dentista",
+      "plano de saude",
+      "unimed",
+      "academia"
+    ]
   },
   "lazer": {
     "nome": "Lazer",
-    "palavras": ["cinema", "teatro", "show", "bar", "cerveja", "passeio", "viagem", "netflix", "spotify", "streaming", "pipoca", "parque", "ingresso"]
+    "palavras": [
+      "cinema",
+      "teatro",
+      "show",
+      "bar",
+      "cerveja",
+      "passeio",
+      "viagem",
+      "netflix",
+      "spotify",
+      "streaming",
+      "pipoca",
+      "parque",
+      "ingresso",
+      "massagem",
+      "masssagem"
+    ]
   },
   "outros": {
     "nome": "Outros",

@@ -4,12 +4,13 @@ Uso: python3 scripts/parse_whatsapp.py [dados/conversa.txt]
 
 Gera dados/despesas.csv, dados/despesas.json e dados/nao_reconhecidas.txt.
 """
+import calendar
 import csv
 import json
 import re
 import sys
 import unicodedata
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
@@ -23,6 +24,8 @@ CABECALHO = re.compile(
 VALOR = re.compile(r"(?<![\d/.,])(?:R\$\s*)?(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d{1,2}))?(?![\d/])")
 TAG = re.compile(r"#(\w+)")
 PAGAMENTO = re.compile(r"\(([^)]*)\)")
+PARCELAS = re.compile(r"^(\d{1,2})\s*x\b")  # (6x) / (6x sem juros)
+EDITADA = re.compile(r"<mensagem editada>", re.I)
 FORMAS = {
     "credito": "Crédito", "cartao": "Crédito", "debito": "Débito", "pix": "Pix", "dinheiro": "Dinheiro",
     # (banri) é o vale-alimentação do Banrisul
@@ -86,15 +89,25 @@ def dia_da_semana(linha, base):
 
 
 def interpretar_item(linha):
-    texto = linha.strip().lstrip("-•*").strip()
+    texto = EDITADA.sub("", linha).strip().lstrip("-•*").strip()
     tags = [sem_acento(t) for t in TAG.findall(texto)]
     texto = TAG.sub("", texto)
     pagamento = None
+    parcelas = 1
     for conteudo in PAGAMENTO.findall(texto):
         forma = FORMAS.get(sem_acento(conteudo).strip())
+        n = PARCELAS.match(sem_acento(conteudo).strip())
         if forma:
             pagamento = forma
             texto = texto.replace(f"({conteudo})", "")
+        elif n:
+            parcelas = int(n.group(1))
+            texto = texto.replace(f"({conteudo})", "")
+    # "Lancheria 42 - credito": forma de pagamento no fim, depois de um traço
+    m = re.search(r"\s[-–]\s*(\w+)\s*$", texto)
+    if not pagamento and m and FORMAS.get(sem_acento(m.group(1))):
+        pagamento = FORMAS[sem_acento(m.group(1))]
+        texto = texto[:m.start()]
     valores = list(VALOR.finditer(texto))
     valor = None
     if valores:
@@ -102,7 +115,18 @@ def interpretar_item(linha):
         valor = float(v.group(1).replace(".", "") + "." + (v.group(2) or "0"))
         texto = texto[:v.start()] + texto[v.end():]
     descricao = re.sub(r"\s+", " ", texto).strip(" -:–")
-    return descricao, valor, tags, pagamento
+    return descricao, valor, tags, pagamento, parcelas
+
+
+def dividir_parcelas(data, valor, n):
+    """Compra parcelada: n lançamentos mensais no mesmo dia; os centavos que sobram vão na última."""
+    base = None if valor is None else round(valor / n, 2)
+    for i in range(n):
+        mes = data.month - 1 + i
+        ano, mes = data.year + mes // 12, mes % 12 + 1
+        dia = min(data.day, calendar.monthrange(ano, mes)[1])
+        v = base if valor is None or i < n - 1 else round(valor - base * (n - 1), 2)
+        yield date(ano, mes, dia), v, i + 1
 
 
 def categorizar(descricao, tags, cats, palavras):
@@ -142,7 +166,7 @@ def extrair(mensagens, cats, palavras, config):
             if novo_dia:
                 data = novo_dia
                 continue
-            descricao, valor, tags, pagamento = interpretar_item(linha)
+            descricao, valor, tags, pagamento, parcelas = interpretar_item(linha)
             if not descricao and valor is None:
                 continue
             curta = len(descricao.split()) <= 5 and not descricao.endswith(("?", "."))
@@ -153,20 +177,24 @@ def extrair(mensagens, cats, palavras, config):
                 ignoradas.append(({**msg, "linhas": [linha]}, "antes do início"))
                 continue
             categoria, pista = categorizar(descricao, tags, cats, palavras)
-            despesas.append({
-                "id": str(len(despesas) + 1),
-                "data": data.isoformat(),
-                "ciclo": inicio_do_ciclo(data, config["dia_fechamento"]).isoformat(),
-                "descricao": descricao[:1].upper() + descricao[1:],
-                "valor": valor,
-                "categoria": cats[categoria]["nome"],
-                "pagamento": pagamento or "",
-                "autor": msg["autor"],
-                "origem": "padrao" if re.match(r"^\s*(R\$\s*)?\d", linha) else "antigo",
-                "pista_categoria": pista,
-                "pendente": valor is None,
-                "mensagem": msg["quando"].strftime("%d/%m/%Y %H:%M"),
-            })
+            if pista == "sem-pista" and pagamento == "Vale-alimentação":
+                categoria, pista = "alimentacao", "vale"  # o vale só aceita comida
+            descricao = descricao[:1].upper() + descricao[1:]
+            for dia, v, n in dividir_parcelas(data, valor, parcelas):
+                despesas.append({
+                    "id": str(len(despesas) + 1),
+                    "data": dia.isoformat(),
+                    "ciclo": inicio_do_ciclo(dia, config["dia_fechamento"]).isoformat(),
+                    "descricao": descricao if parcelas == 1 else f"{descricao} (parcela {n}/{parcelas})",
+                    "valor": v,
+                    "categoria": cats[categoria]["nome"],
+                    "pagamento": pagamento or "",
+                    "autor": msg["autor"],
+                    "origem": "padrao" if re.match(r"^\s*(R\$\s*)?\d", linha) else "antigo",
+                    "pista_categoria": pista,
+                    "pendente": v is None,
+                    "mensagem": msg["quando"].strftime("%d/%m/%Y %H:%M"),
+                })
     return despesas, ignoradas
 
 

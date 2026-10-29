@@ -266,18 +266,22 @@
   dash.calc('ciclos', {
     inputs: ['config', 'gastos'],
     title: 'Faturas',
-    description: 'Cada fatura vai do dia de fechamento (26) até o dia 25 seguinte, do início combinado até a fatura do gasto mais recente.',
+    description: 'Cada fatura vai do dia de fechamento (26) até o dia 25 seguinte, do início combinado até a fatura de hoje ou a do lançamento mais distante (parcelas futuras), o que vier depois. A fatura atual é a que contém a data de hoje.',
     fn: (config, gastos) => {
       if (!config.length) return [];
       const fecha = Number(config[0].dia_fechamento);
       const iso = (t) => new Date(t).toISOString().slice(0, 10);
       const parse = (s) => { const [a, m, d] = String(s).slice(0, 10).split('-').map(Number); return Date.UTC(a, m - 1, d); };
       const proximo = (t) => { const d = new Date(t); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, fecha); };
-      const ultimo = gastos.reduce((mx, d) => Math.max(mx, parse(d.ciclo)), parse(config[0].inicio));
+      const agora = new Date();
+      const hoje = Date.UTC(agora.getFullYear(), agora.getMonth(), agora.getDate());
+      const d0 = new Date(hoje);
+      const cicloHoje = d0.getUTCDate() >= fecha ? Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth(), fecha) : Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth() - 1, fecha);
+      const ultimo = gastos.reduce((mx, d) => Math.max(mx, parse(d.ciclo)), Math.max(parse(config[0].inicio), cicloHoje));
       const lista = [];
       for (let t = parse(config[0].inicio); t <= ultimo; t = proximo(t)) {
         const fim = proximo(t) - 86400000;
-        lista.push({ ciclo: iso(t), fim: iso(fim), dias: Math.round((fim - t) / 86400000) + 1 });
+        lista.push({ ciclo: iso(t), fim: iso(fim), dias: Math.round((fim - t) / 86400000) + 1, atual: t <= hoje && hoje <= fim });
       }
       return lista;
     },
@@ -357,16 +361,17 @@
   dash.calc('projecao', {
     inputs: ['gastos', 'mensal', 'ciclos', 'config'],
     title: 'Ritmo, provisão e saldo do vale',
-    description: 'Na fatura mais recente, com os dias do dia 26 até o último gasto lançado: média por dia e projeção até o dia 25 do cartão + conta; média das até 3 faturas anteriores (ou a projeção, se ainda não houver) e essa média + 10%. Vale: valor mensal menos o gasto no vale, e o saldo projetado no dia 25 no mesmo ritmo.',
+    description: 'Na fatura atual (a que contém a data de hoje), com os dias do dia 26 até hoje: média por dia e projeção até o dia 25 do cartão + conta; média das até 3 faturas anteriores (ou a projeção, se ainda não houver) e essa média + 10%. Vale: valor mensal menos o gasto no vale, e o saldo projetado no dia 25 no mesmo ritmo.',
     fn: (gastos, mensal, ciclos, config) => {
       if (!ciclos.length) return [];
       const MARGEM = 0.1;
       const r2 = (x) => Math.round(x * 100) / 100;
       const parse = (s) => { const [a, m, d] = String(s).slice(0, 10).split('-').map(Number); return Date.UTC(a, m - 1, d); };
-      const c = ciclos[ciclos.length - 1];
+      const c = ciclos.find((x) => x.atual) || ciclos[0];
       const atual = mensal.find((r) => r.ciclo === c.ciclo);
-      const datas = gastos.filter((d) => d.ciclo === c.ciclo).map((d) => parse(d.data));
-      const dias = datas.length ? Math.round((Math.max(...datas) - parse(c.ciclo)) / 86400000) + 1 : 0;
+      const agora = new Date();
+      const hoje = Date.UTC(agora.getFullYear(), agora.getMonth(), agora.getDate());
+      const dias = Math.max(0, Math.round((Math.min(hoje, parse(c.fim)) - parse(c.ciclo)) / 86400000) + 1);
       const restantes = c.dias - dias;
       const gasto = atual ? atual.bolso : 0;
       const media_diaria = dias ? gasto / dias : 0;
@@ -625,7 +630,7 @@
   dash.onData(() => {
     const cic = dash.data('ciclos');
     const ciclos = cic.status === 'ok' ? cic.data : [];
-    const ultimo = ciclos.length ? ciclos[ciclos.length - 1] : null;
+    const ultimo = ciclos.find((x) => x.atual) || (ciclos.length ? ciclos[ciclos.length - 1] : null);
     const c = ciclos.find((x) => x.ciclo === dash.params().ciclo) || ultimo;
     cicloAtual = c ? c.ciclo : null;
     rotuloAtual = c ? nomeCiclo(c) : '';
@@ -679,7 +684,7 @@
       const temGasto = ehAtual && p.dias > 0;
       const tMedia = set('#t-media', temGasto ? brl.format(p.media_diaria) : '—');
       if (temGasto) mark(tMedia, 'projecao', 'media_diaria'); else unmark(tMedia);
-      set('#t-dias', !ehAtual ? 'Calculada só para a fatura atual' : temGasto ? `${p.dias} de ${p.dias_no_ciclo} dias da fatura` : `Fatura de ${p.dias_no_ciclo} dias, até ${diaMes(p.fim)}`);
+      set('#t-dias', !ehAtual ? 'Calculada só para a fatura atual' : `${p.dias} de ${p.dias_no_ciclo} dias da fatura`);
       const tProj = set('#t-proj', temGasto ? brl.format(p.projecao_mes) : '—');
       if (temGasto) mark(tProj, 'projecao', 'projecao_mes'); else unmark(tProj);
       document.getElementById('t-meter').style.width = temGasto && p.projecao_mes ? Math.min(100, (p.gasto / p.projecao_mes) * 100) + '%' : '0';
