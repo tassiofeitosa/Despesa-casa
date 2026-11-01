@@ -17,8 +17,9 @@ RAIZ = Path(__file__).resolve().parent.parent
 DADOS = RAIZ / "dados"
 
 # Android: "16/10/2026 11:30 - Bruna: texto"  |  iOS: "[16/10/2026, 11:30:12] Bruna: texto"
+# iOS em inglês: "[10/28/26, 8:36:05 PM] Você: texto" (mês/dia, AM/PM; "Você" é quem exportou)
 CABECALHO = re.compile(
-    r"^\[?(\d{1,2}/\d{1,2}/\d{2,4}),? (\d{1,2}:\d{2})(?::\d{2})?\]?(?: -)? (.*)$"
+    r"^\[?(\d{1,2}/\d{1,2}/\d{2,4}),? (\d{1,2}:\d{2})(?::\d{2})?(?:\s?([AP]M))?\]?(?: -)? (.*)$", re.I
 )
 # valor: 31 | 11,35 | 1.234,56 | R$ 45,90 — nunca parte de uma data (16/10)
 VALOR = re.compile(r"(?<![\d/.,])(?:R\$\s*)?(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d{1,2}))?(?![\d/])")
@@ -59,17 +60,23 @@ def carregar_categorias():
     return cats, palavras
 
 
-def ler_mensagens(caminho):
+def ler_mensagens(caminho, voce=""):
     mensagens = []
     for linha in caminho.read_text(encoding="utf-8-sig").splitlines():
-        linha = linha.replace("‎", "").replace("‏", "")
+        linha = linha.replace("‎", "").replace("‏", "").replace(" ", " ").replace("\xa0", " ")
         m = CABECALHO.match(linha)
         if m:
-            d, hora, resto = m.groups()
-            dia, mes, ano = d.split("/")
+            d, hora, ampm, resto = m.groups()
+            a, b, ano = d.split("/")
+            dia, mes = (b, a) if ampm else (a, b)  # com AM/PM a data vem como mês/dia
             ano = int(ano) + (2000 if len(ano) == 2 else 0)
-            quando = datetime(ano, int(mes), int(dia), *map(int, hora.split(":")))
+            h, mi = map(int, hora.split(":"))
+            if ampm:
+                h = h % 12 + (12 if ampm.upper() == "PM" else 0)
+            quando = datetime(ano, int(mes), int(dia), h, mi)
             autor, _, texto = resto.partition(": ") if ": " in resto else ("", "", resto)
+            if voce and autor in ("Você", "You"):
+                autor = voce
             mensagens.append({"quando": quando, "autor": autor, "linhas": [texto]})
         elif mensagens:
             mensagens[-1]["linhas"].append(linha)
@@ -201,8 +208,9 @@ def extrair(mensagens, cats, palavras, config):
 def main():
     origem = Path(sys.argv[1]) if len(sys.argv) > 1 else DADOS / "conversa.txt"
     cats, palavras = carregar_categorias()
-    mensagens = ler_mensagens(origem)
-    despesas, ignoradas = extrair(mensagens, cats, palavras, carregar_config())
+    config = carregar_config()
+    mensagens = ler_mensagens(origem, config.get("voce", ""))
+    despesas, ignoradas = extrair(mensagens, cats, palavras, config)
 
     campos = ["id", "data", "ciclo", "descricao", "valor", "categoria", "pagamento", "autor", "origem",
               "pista_categoria", "pendente", "mensagem"]
