@@ -233,7 +233,7 @@
   "pagamento": "Vale-alimentação",
   "autor": "Tassio",
   "origem": "antigo",
-  "pista_categoria": "vale",
+  "pista_categoria": "palavra-chave",
   "pendente": false,
   "mensagem": "29/10/2026 22:24"
  },
@@ -453,11 +453,11 @@
   "ciclo": "2026-10-26",
   "descricao": "Uai why",
   "valor": 34.0,
-  "categoria": "Outros",
+  "categoria": "Alimentação",
   "pagamento": "Crédito",
   "autor": "Tassio",
   "origem": "antigo",
-  "pista_categoria": "sem-pista",
+  "pista_categoria": "palavra-chave",
   "pendente": false,
   "mensagem": "01/11/2026 18:51"
  },

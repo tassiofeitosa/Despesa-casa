@@ -15,7 +15,7 @@ id,data,ciclo,descricao,valor,categoria,pagamento,autor,origem,pista_categoria,p
 14,2026-10-28,2026-10-26,Paulinho frutas,26.00,Alimentação,Crédito,Bruna,antigo,palavra-chave,False,28/10/2026 20:29
 15,2026-10-28,2026-10-26,Masssagem,90.00,Lazer,Pix,Bruna,antigo,palavra-chave,False,28/10/2026 20:29
 16,2026-10-29,2026-10-26,Zaffari,50.00,Alimentação,Vale-alimentação,Bruna,padrao,palavra-chave,False,29/10/2026 17:50
-17,2026-10-29,2026-10-26,Japeska,85.95,Alimentação,Vale-alimentação,Tassio,antigo,vale,False,29/10/2026 22:24
+17,2026-10-29,2026-10-26,Japeska,85.95,Alimentação,Vale-alimentação,Tassio,antigo,palavra-chave,False,29/10/2026 22:24
 18,2026-10-29,2026-10-26,Pão,4.75,Alimentação,Crédito,Tassio,antigo,palavra-chave,False,29/10/2026 22:24
 19,2026-10-30,2026-10-26,Zaffari,244.00,Alimentação,Vale-alimentação,Bruna,padrao,palavra-chave,False,30/10/2026 10:05
 20,2026-10-31,2026-10-26,Almoço,39.00,Alimentação,Crédito,Tassio,antigo,palavra-chave,False,31/10/2026 00:20
@@ -31,7 +31,7 @@ id,data,ciclo,descricao,valor,categoria,pagamento,autor,origem,pista_categoria,p
 30,2026-11-01,2026-10-26,Uber volta,41.00,Transporte,Crédito,Bruna,padrao,palavra-chave,False,01/11/2026 14:17
 31,2026-11-01,2026-10-26,Enfeite cabelo vinha,10.00,Outros,Crédito,Bruna,padrao,palavra-chave,False,01/11/2026 14:17
 32,2026-11-01,2026-10-26,Farmácia são João,8.40,Saúde,Crédito,Tassio,antigo,palavra-chave,False,01/11/2026 18:51
-33,2026-11-01,2026-10-26,Uai why,34.00,Outros,Crédito,Tassio,antigo,sem-pista,False,01/11/2026 18:51
+33,2026-11-01,2026-10-26,Uai why,34.00,Alimentação,Crédito,Tassio,antigo,palavra-chave,False,01/11/2026 18:51
 34,2026-11-01,2026-10-26,Zaffari,26.95,Alimentação,Vale-alimentação,Tassio,antigo,palavra-chave,False,01/11/2026 19:09
 35,2026-11-02,2026-10-26,Panvel fralda nene (parcela 1/3),64.67,Saúde,Crédito,Bruna,padrao,palavra-chave,False,02/11/2026 17:09
 36,2026-12-02,2026-11-26,Panvel fralda nene (parcela 2/3),64.67,Saúde,Crédito,Bruna,padrao,palavra-chave,False,02/11/2026 17:09
