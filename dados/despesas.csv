@@ -4,13 +4,36 @@ id,data,ciclo,descricao,valor,categoria,pagamento,autor,origem,pista_categoria,p
 3,2026-10-27,2026-10-26,Cafe manha brasco,54.00,Alimentação,Vale-alimentação,Bruna,antigo,palavra-chave,False,27/10/2026 13:59
 4,2026-10-27,2026-10-26,Padaria,14.52,Alimentação,Crédito,Tassio,antigo,palavra-chave,False,27/10/2026 16:39
 5,2026-10-28,2026-10-26,Zaffari,73.21,Alimentação,Vale-alimentação,Tassio,antigo,palavra-chave,False,28/10/2026 08:36
-6,2026-10-28,2026-10-26,2 tênis (parcela 1/6),33.33,Outros,Crédito,Tassio,padrao,sem-pista,False,28/10/2026 10:08
-7,2026-11-28,2026-11-26,2 tênis (parcela 2/6),33.33,Outros,Crédito,Tassio,padrao,sem-pista,False,28/10/2026 10:08
-8,2026-12-28,2026-12-26,2 tênis (parcela 3/6),33.33,Outros,Crédito,Tassio,padrao,sem-pista,False,28/10/2026 10:08
-9,2027-01-28,2027-01-26,2 tênis (parcela 4/6),33.33,Outros,Crédito,Tassio,padrao,sem-pista,False,28/10/2026 10:08
-10,2027-02-28,2027-02-26,2 tênis (parcela 5/6),33.33,Outros,Crédito,Tassio,padrao,sem-pista,False,28/10/2026 10:08
-11,2027-03-28,2027-03-26,2 tênis (parcela 6/6),33.35,Outros,Crédito,Tassio,padrao,sem-pista,False,28/10/2026 10:08
-12,2026-10-28,2026-10-26,Center shopping,53.96,Alimentação,Vale-alimentação,Tassio,antigo,vale,False,28/10/2026 20:26
-13,2026-10-28,2026-10-26,Presente colega trabalho,25.00,Outros,Pix,Tassio,antigo,sem-pista,False,28/10/2026 20:27
+6,2026-10-28,2026-10-26,2 tênis (parcela 1/6),33.33,Outros,Crédito,Tassio,padrao,palavra-chave,False,28/10/2026 10:08
+7,2026-11-28,2026-11-26,2 tênis (parcela 2/6),33.33,Outros,Crédito,Tassio,padrao,palavra-chave,False,28/10/2026 10:08
+8,2026-12-28,2026-12-26,2 tênis (parcela 3/6),33.33,Outros,Crédito,Tassio,padrao,palavra-chave,False,28/10/2026 10:08
+9,2027-01-28,2027-01-26,2 tênis (parcela 4/6),33.33,Outros,Crédito,Tassio,padrao,palavra-chave,False,28/10/2026 10:08
+10,2027-02-28,2027-02-26,2 tênis (parcela 5/6),33.33,Outros,Crédito,Tassio,padrao,palavra-chave,False,28/10/2026 10:08
+11,2027-03-28,2027-03-26,2 tênis (parcela 6/6),33.35,Outros,Crédito,Tassio,padrao,palavra-chave,False,28/10/2026 10:08
+12,2026-10-28,2026-10-26,Center shopping,53.96,Alimentação,Vale-alimentação,Tassio,antigo,vale,False,28/10/2026 20:27
+13,2026-10-28,2026-10-26,Presente colega trabalho,25.00,Outros,Pix,Tassio,antigo,palavra-chave,False,28/10/2026 20:27
 14,2026-10-28,2026-10-26,Paulinho frutas,26.00,Alimentação,Crédito,Bruna,antigo,palavra-chave,False,28/10/2026 20:29
 15,2026-10-28,2026-10-26,Masssagem,90.00,Lazer,Pix,Bruna,antigo,palavra-chave,False,28/10/2026 20:29
+16,2026-10-29,2026-10-26,Zaffari,50.00,Alimentação,Vale-alimentação,Bruna,padrao,palavra-chave,False,29/10/2026 17:50
+17,2026-10-29,2026-10-26,Japeska,85.95,Alimentação,Vale-alimentação,Tassio,antigo,vale,False,29/10/2026 22:24
+18,2026-10-29,2026-10-26,Pão,4.75,Alimentação,Crédito,Tassio,antigo,palavra-chave,False,29/10/2026 22:24
+19,2026-10-30,2026-10-26,Zaffari,244.00,Alimentação,Vale-alimentação,Bruna,padrao,palavra-chave,False,30/10/2026 10:05
+20,2026-10-31,2026-10-26,Almoço,39.00,Alimentação,Crédito,Tassio,antigo,palavra-chave,False,31/10/2026 00:20
+21,2026-10-31,2026-10-26,Zaffari,11.90,Alimentação,Vale-alimentação,Tassio,antigo,palavra-chave,False,31/10/2026 11:19
+22,2026-10-31,2026-10-26,Lipe,29.00,Alimentação,Vale-alimentação,Tassio,antigo,vale,False,31/10/2026 12:08
+23,2026-10-31,2026-10-26,Feira + pao,55.00,Alimentação,Crédito,Bruna,padrao,palavra-chave,False,31/10/2026 12:31
+24,2026-11-01,2026-10-26,Zaffari,236.30,Alimentação,Crédito,Tassio,antigo,palavra-chave,False,01/11/2026 09:34
+25,2026-11-01,2026-10-26,Uber nai,80.00,Transporte,Crédito,Bruna,padrao,palavra-chave,False,01/11/2026 11:25
+26,2026-11-01,2026-10-26,Uber,23.59,Transporte,Crédito,Tassio,antigo,palavra-chave,False,01/11/2026 11:37
+27,2026-11-01,2026-10-26,Bodys vinha (parcela 1/3),59.67,Outros,Crédito,Bruna,padrao,palavra-chave,False,01/11/2026 14:17
+28,2026-12-01,2026-11-26,Bodys vinha (parcela 2/3),59.67,Outros,Crédito,Bruna,padrao,palavra-chave,False,01/11/2026 14:17
+29,2027-01-01,2026-12-26,Bodys vinha (parcela 3/3),59.66,Outros,Crédito,Bruna,padrao,palavra-chave,False,01/11/2026 14:17
+30,2026-11-01,2026-10-26,Uber volta,41.00,Transporte,Crédito,Bruna,padrao,palavra-chave,False,01/11/2026 14:17
+31,2026-11-01,2026-10-26,Enfeite cabelo vinha,10.00,Outros,Crédito,Bruna,padrao,palavra-chave,False,01/11/2026 14:17
+32,2026-11-01,2026-10-26,Farmácia são João,8.40,Saúde,Crédito,Tassio,antigo,palavra-chave,False,01/11/2026 18:51
+33,2026-11-01,2026-10-26,Uai why,34.00,Outros,Crédito,Tassio,antigo,sem-pista,False,01/11/2026 18:51
+34,2026-11-01,2026-10-26,Zaffari,26.95,Alimentação,Vale-alimentação,Tassio,antigo,palavra-chave,False,01/11/2026 19:09
+35,2026-11-02,2026-10-26,Panvel fralda nene (parcela 1/3),64.67,Saúde,Crédito,Bruna,padrao,palavra-chave,False,02/11/2026 17:09
+36,2026-12-02,2026-11-26,Panvel fralda nene (parcela 2/3),64.67,Saúde,Crédito,Bruna,padrao,palavra-chave,False,02/11/2026 17:09
+37,2027-01-02,2026-12-26,Panvel fralda nene (parcela 3/3),64.66,Saúde,Crédito,Bruna,padrao,palavra-chave,False,02/11/2026 17:09
+38,2026-11-02,2026-10-26,Lancheria,42.00,Alimentação,Vale-alimentação,Tassio,antigo,palavra-chave,False,02/11/2026 18:50

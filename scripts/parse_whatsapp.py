@@ -25,7 +25,7 @@ CABECALHO = re.compile(
 VALOR = re.compile(r"(?<![\d/.,])(?:R\$\s*)?(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d{1,2}))?(?![\d/])")
 TAG = re.compile(r"#(\w+)")
 PAGAMENTO = re.compile(r"\(([^)]*)\)")
-PARCELAS = re.compile(r"^(\d{1,2})\s*x\b")  # (6x) / (6x sem juros)
+PARCELAS = re.compile(r"(?<!\w)(\d{1,2})\s*x\b")  # (6x) / (6x sem juros)
 EDITADA = re.compile(r"<mensagem editada>", re.I)
 FORMAS = {
     "credito": "Crédito", "cartao": "Crédito", "debito": "Débito", "pix": "Pix", "dinheiro": "Dinheiro",
@@ -101,15 +101,17 @@ def interpretar_item(linha):
     texto = TAG.sub("", texto)
     pagamento = None
     parcelas = 1
+    # "(credito)", "(6x sem juros)", "(3x credito)", "(uber credito)": forma e parcelas podem vir juntas
     for conteudo in PAGAMENTO.findall(texto):
-        forma = FORMAS.get(sem_acento(conteudo).strip())
-        n = PARCELAS.match(sem_acento(conteudo).strip())
+        alvo = sem_acento(conteudo).strip()
+        forma = next((FORMAS[p] for p in re.findall(r"\w+", alvo) if p in FORMAS), None)
+        n = PARCELAS.search(alvo)
         if forma:
             pagamento = forma
-            texto = texto.replace(f"({conteudo})", "")
-        elif n:
+        if n:
             parcelas = int(n.group(1))
-            texto = texto.replace(f"({conteudo})", "")
+        if forma or n:
+            texto = texto.replace(f"({conteudo})", " ")
     # "Lancheria 42 - credito": forma de pagamento no fim, depois de um traço
     m = re.search(r"\s[-–]\s*(\w+)\s*$", texto)
     if not pagamento and m and FORMAS.get(sem_acento(m.group(1))):

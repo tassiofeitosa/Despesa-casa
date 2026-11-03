@@ -128,6 +128,13 @@
   },
   "outros": {
     "nome": "Outros",
-    "palavras": []
+    "palavras": [
+      "bodys",
+      "body",
+      "enfeite",
+      "tenis",
+      "tênis",
+      "presente"
+    ]
   }
 }
